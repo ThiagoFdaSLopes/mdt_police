@@ -47,19 +47,15 @@ AddEventHandler("playerDropped", function(reason)
 				activeUnits[PlayerData[1].registration] = nil
 			end
 		end
-	print(#activeUnits)
 end)
 
--- RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
---     local src = source
---     local player = QBCore.Functions.GetPlayer(src)
---     if not player.PlayerData.job.onduty then
--- 	--// Remove from MDT
--- 	if GetActiveData(player.PlayerData.citizenid) then
--- 		activeUnits[player.PlayerData.citizenid] = nil
--- 	end
---     end
--- end)
+RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
+	local src = source
+	local userPlayerId = vRP.getUserId(src)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
+	--// Remove from MDT
+	activeUnits[PlayerData[1].registration] = nil
+end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PEGA TODOS OS USUARIOS COM PERMISSAO DE POLICIA
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -84,7 +80,6 @@ RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
 	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
-	print(PlayerData[1].registration)
 
 	activeUnits[PlayerData[1].registration] = {
 		cid = PlayerData[1].registration,
@@ -95,9 +90,6 @@ RegisterNetEvent('mdt:server:openMDT', function()
 		unitType = "police",
 		duty = true
 	}
-
-	print(#activeUnits)
-
 
 	local JobType = "police"
 	local bulletin = GetBulletins(JobType)

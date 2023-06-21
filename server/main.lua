@@ -24,47 +24,42 @@ function cRP.checkPermission()
   end
 end
 -----------------------------------------------------------------------------------------------------------------------------------------
--- CONNECTION
+-- CONNECTION/DISCONNECT
 -----------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("nc-mdt:server:OnPlayerUnload", function()
-	--// Delete player from the MDT on logout
-	local src = source
-	local player = QBCore.Functions.GetPlayer(src)
-	if GetActiveData(player.PlayerData.citizenid) then
-		activeUnits[player.PlayerData.citizenid] = nil
-	end
-end)
+-- RegisterNetEvent("nc-mdt:server:OnPlayerUnload", function()
+-- 	--// Delete player from the MDT on logout
+-- 	local src = source
+-- 	local player = QBCore.Functions.GetPlayer(src)
+-- 	if GetActiveData(player.PlayerData.citizenid) then
+-- 		activeUnits[player.PlayerData.citizenid] = nil
+-- 	end
+-- end)
 
 AddEventHandler("playerDropped", function(reason)
 	--// Delete player from the MDT on logout
 	local src = source
-	local player = QBCore.Functions.GetPlayer(src)
-	if player ~= nil then
-		if GetActiveData(player.PlayerData.citizenid) then
-			activeUnits[player.PlayerData.citizenid] = nil
-		end
+	local userPlayerId = vRP.getUserId(src)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
+	if PlayerData[1] ~= nil then
+		activeUnits[PlayerData[1].registration] = nil
 	else
-		local license = QBCore.Functions.GetIdentifier(src, "license")
-		local citizenids = GetCitizenID(license)
-
-		for _, v in pairs(citizenids) do
-			if GetActiveData(v.citizenid) then
-				activeUnits[v.citizenid] = nil
+		for _, v in pairs(activeUnits) do
+				activeUnits[PlayerData[1].registration] = nil
 			end
 		end
-	end
+	print(#activeUnits)
 end)
 
-RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
-    local src = source
-    local player = QBCore.Functions.GetPlayer(src)
-    if not player.PlayerData.job.onduty then
-	--// Remove from MDT
-	if GetActiveData(player.PlayerData.citizenid) then
-		activeUnits[player.PlayerData.citizenid] = nil
-	end
-    end
-end)
+-- RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
+--     local src = source
+--     local player = QBCore.Functions.GetPlayer(src)
+--     if not player.PlayerData.job.onduty then
+-- 	--// Remove from MDT
+-- 	if GetActiveData(player.PlayerData.citizenid) then
+-- 		activeUnits[player.PlayerData.citizenid] = nil
+-- 	end
+--     end
+-- end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PEGA TODOS OS USUARIOS COM PERMISSAO DE POLICIA
 -----------------------------------------------------------------------------------------------------------------------------------------

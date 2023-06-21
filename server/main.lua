@@ -50,9 +50,8 @@ AddEventHandler("playerDropped", function(reason)
 end)
 
 RegisterNetEvent("nc-mdt:server:ToggleDuty")
-AddEventHandler("nc-mdt:server:ToggleDuty", function()
-	local src = source
-	local userPlayerId = vRP.getUserId(src)
+AddEventHandler("nc-mdt:server:ToggleDuty", function(source)
+	local userPlayerId = vRP.getUserId(source)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 	print("Deslogado "..PlayerData[1].name)
 	--// Remove from MDT

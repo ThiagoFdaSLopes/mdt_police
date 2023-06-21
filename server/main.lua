@@ -127,7 +127,7 @@ RegisterNetEvent('mdt:server:NewBulletin', function(title, info, time)
   local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = user_id })
 	local JobType = "police"
-	local playerName = PlayerData[1].name
+	local playerName = PlayerData[1].name.." "..PlayerData[1].name2
 	MySQL.insert.await('INSERT INTO `mdt_bulletin` (`title`, `desc`, `author`, `time`, `jobtype`) VALUES (:title, :desc, :author, :time, :jt)', {
 		title = title,
 		desc = info,

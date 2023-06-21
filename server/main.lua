@@ -9,6 +9,7 @@ vRPC = Tunnel.getInterface("vRP")
 -- CONNECTION
 -----------------------------------------------------------------------------------------------------------------------------------------
 cRP = {}
+local activeUnits = {}
 Tunnel.bindInterface(GetCurrentResourceName(), cRP)
 
 vCLIENT = Tunnel.getInterface(GetCurrentResourceName())
@@ -22,8 +23,48 @@ function cRP.checkPermission()
     TriggerClientEvent("Notify", source, "negado", "Você não possui permissao", 3000)
   end
 end
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- CONNECTION
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("nc-mdt:server:OnPlayerUnload", function()
+	--// Delete player from the MDT on logout
+	local src = source
+	local player = QBCore.Functions.GetPlayer(src)
+	if GetActiveData(player.PlayerData.citizenid) then
+		activeUnits[player.PlayerData.citizenid] = nil
+	end
+end)
 
-local activeUnits = {}
+AddEventHandler("playerDropped", function(reason)
+	--// Delete player from the MDT on logout
+	local src = source
+	local player = QBCore.Functions.GetPlayer(src)
+	if player ~= nil then
+		if GetActiveData(player.PlayerData.citizenid) then
+			activeUnits[player.PlayerData.citizenid] = nil
+		end
+	else
+		local license = QBCore.Functions.GetIdentifier(src, "license")
+		local citizenids = GetCitizenID(license)
+
+		for _, v in pairs(citizenids) do
+			if GetActiveData(v.citizenid) then
+				activeUnits[v.citizenid] = nil
+			end
+		end
+	end
+end)
+
+RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
+    local src = source
+    local player = QBCore.Functions.GetPlayer(src)
+    if not player.PlayerData.job.onduty then
+	--// Remove from MDT
+	if GetActiveData(player.PlayerData.citizenid) then
+		activeUnits[player.PlayerData.citizenid] = nil
+	end
+    end
+end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PEGA TODOS OS USUARIOS COM PERMISSAO DE POLICIA
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -87,6 +128,13 @@ RegisterNetEvent('mdt:server:NewBulletin', function(title, info, time)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = user_id })
 	local JobType = "police"
 	local playerName = PlayerData[1].name
+	MySQL.insert.await('INSERT INTO `mdt_bulletin` (`title`, `desc`, `author`, `time`, `jobtype`) VALUES (:title, :desc, :author, :time, :jt)', {
+		title = title,
+		desc = info,
+		author = playerName,
+		time = tostring(time),
+		jt = JobType
+	})
 
 	AddLog(("A new bulletin was added by %s with the title: %s!"):format(playerName, title))
 end)

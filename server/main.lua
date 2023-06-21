@@ -78,9 +78,9 @@ end
 -- EVENTS
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent('mdt:server:openMDT')
-AddEventHandler("mdt:server:openMDT", function(source)
-	print(source)
-	local userPlayerId = vRP.getUserId(source)
+AddEventHandler("mdt:server:openMDT", function()
+	local src = source
+	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 
 	activeUnits[PlayerData[1].registration] = {

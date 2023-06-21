@@ -22,20 +22,40 @@ function cRP.checkPermission()
     TriggerClientEvent("Notify", source, "negado", "Você não possui permissao", 3000)
   end
 end
+
+local activeUnits = {}
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- PEGA TODOS OS USUARIOS COM PERMISSAO DE POLICIA
+-----------------------------------------------------------------------------------------------------------------------------------------
+function cRP.getUsersByPermissions()
+	local permissions = {
+		["Police"] = {},
+		["Paramedic"] = {},
+	}
+	local users = vRP.getUsers()
+
+	for k, v in pairs(users) do
+		if vRP.hasPermission(v, "Police") then
+			table.insert(permissions["Police"], v)
+		end
+	end
+	return permissions
+end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EVENTS
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
-	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = src })
-	local activeUnits = {}
+	local userPlayerId = vRP.getUserId(src)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
+
 	activeUnits[PlayerData[1].registration] = {
 		cid = PlayerData[1].registration,
 		callSign = PlayerData[1].phone,
 		firstName = PlayerData[1].name,
 		lastName = PlayerData[1].name2,
 		radio = 50,
-		unitType = "Police",
+		unitType = "police",
 		duty = true
 	}
 
@@ -44,7 +64,7 @@ RegisterNetEvent('mdt:server:openMDT', function()
 	local bulletin = GetBulletins(JobType)
 	-- local calls = exports['nc-dispatch']:GetDispatchCalls()
 	TriggerClientEvent('mdt:client:dashboardbulletin', src, bulletin)
-	TriggerClientEvent('mdt:client:open', src, bulletin, activeUnits, calls, PlayerData[1].registration)
+	TriggerClientEvent('mdt:client:open', src, bulletin, activeUnits, calls, PlayerData[1].registration, PlayerData[1])
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------

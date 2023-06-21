@@ -55,6 +55,7 @@ AddEventHandler("nc-mdt:server:ToggleDuty", function(source)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 	print("Deslogado "..PlayerData[1].name)
 	--// Remove from MDT
+	activeUnits[PlayerData[1].registration] = nil
 end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PEGA TODOS OS USUARIOS COM PERMISSAO DE POLICIA
@@ -76,9 +77,9 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EVENTS
 -----------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent('mdt:server:openMDT', function()
-	local src = source
-	local userPlayerId = vRP.getUserId(src)
+RegisterNetEvent('mdt:server:openMDT')
+AddEventHandler("eventName", function(source)
+	local userPlayerId = vRP.getUserId(source)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 
 	activeUnits[PlayerData[1].registration] = {

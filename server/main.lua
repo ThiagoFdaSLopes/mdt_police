@@ -29,9 +29,7 @@ end
 RegisterNetEvent("nc-mdt:server:BateuCartao")
 AddEventHandler("nc-mdt:server:BateuCartao", function(source)
 	local src = source
-	local user_id = vRP.getUserId(src)
-	print(user_id)
-	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = user_id })
+	local PlayerData = vRP.getInformation(src)
 
 	if PlayerData[1] ~= nil then
 		activeUnits[PlayerData[1].registration] = {
@@ -63,9 +61,7 @@ end)
 RegisterNetEvent("nc-mdt:server:ToggleDuty")
 AddEventHandler("nc-mdt:server:ToggleDuty", function(source)
 	local src = source
-	print(src)
-	local userPlayerId = vRP.getUserId(src)
-	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
+	local PlayerData = vRP.getInformation(src)
 	print("Deslogado "..PlayerData[1].name)
 	--// Remove from MDT
 	activeUnits[PlayerData[1].registration] = nil

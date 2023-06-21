@@ -84,6 +84,7 @@ RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
 	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
+	print(PlayerData[1].registration)
 
 	activeUnits[PlayerData[1].registration] = {
 		cid = PlayerData[1].registration,

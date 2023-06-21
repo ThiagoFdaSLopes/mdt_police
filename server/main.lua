@@ -108,7 +108,8 @@ end)
 RegisterNetEvent('mdt:server:deleteBulletin', function(id)
 	if not id then return false end
   	local src = source
-	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = src })
+	local userPlayerId = vRP.getUserId(src)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 
   	local result = MySQL.query.await('SELECT title FROM mdt_bulletin WHERE id = ?', { id })
 

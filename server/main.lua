@@ -52,6 +52,7 @@ end)
 RegisterNetEvent("nc-mdt:server:ToggleDuty")
 AddEventHandler("nc-mdt:server:ToggleDuty", function(source)
 	local src = source
+	print(src)
 	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 	print("Deslogado "..PlayerData[1].name)
@@ -80,7 +81,8 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
-	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = src })
+	local userPlayerId = vRP.getUserId(src)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
 
 	activeUnits[PlayerData[1].registration] = {
 		cid = PlayerData[1].registration,

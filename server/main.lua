@@ -78,8 +78,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EVENTS
 -----------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent('mdt:server:openMDT')
-AddEventHandler("mdt:server:openMDT", function()
+RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = src })
 

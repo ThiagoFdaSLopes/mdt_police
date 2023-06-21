@@ -102,7 +102,7 @@ RegisterNetEvent('mdt:client:open', function(bulletin, activeUnits, calls, cid, 
     elseif currentStreetName ~= nil and currentStreetName ~= "" then playerStreetsLocation = currentStreetName .. ", " .. area
     else playerStreetsLocation = area end
 
-    SendNUIMessage({ type = "data", activeUnits = activeUnits, citizenid = cid, ondutyonly = Config.OnlyShowOnDuty, name = "Welcome, Police"..playerData[1].name.." "..playerData[1].name2, location = playerStreetsLocation, fullname = playerData[1].name.. " "..playerData[1].name2, bulletin = bulletin })
+    SendNUIMessage({ type = "data", activeUnits = activeUnits, citizenid = cid, ondutyonly = Config.OnlyShowOnDuty, name = "Welcome, Police "..playerData.name.." "..playerData.name2, location = playerStreetsLocation, fullname = playerData.name.. " "..playerData.name2, bulletin = bulletin })
     -- SendNUIMessage({ type = "calls", data = calls })
     -- TriggerEvent("mdt:client:dashboardWarrants")
 end)

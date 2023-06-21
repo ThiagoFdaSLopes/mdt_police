@@ -49,7 +49,8 @@ AddEventHandler("playerDropped", function(reason)
 		end
 end)
 
-RegisterNetEvent("nc-mdt:server:ToggleDuty", function()
+RegisterNetEvent("nc-mdt:server:ToggleDuty")
+AddEventHandler("nc-mdt:server:ToggleDuty", function()
 	local src = source
 	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })

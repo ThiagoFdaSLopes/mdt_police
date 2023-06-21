@@ -26,14 +26,25 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CONNECTION/DISCONNECT
 -----------------------------------------------------------------------------------------------------------------------------------------
--- RegisterNetEvent("nc-mdt:server:OnPlayerUnload", function()
--- 	--// Delete player from the MDT on logout
--- 	local src = source
--- 	local player = QBCore.Functions.GetPlayer(src)
--- 	if GetActiveData(player.PlayerData.citizenid) then
--- 		activeUnits[player.PlayerData.citizenid] = nil
--- 	end
--- end)
+RegisterNetEvent("nc-mdt:server:BateuCartao")
+AddEventHandler("nc-mdt:server:BateuCartao", function(source)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	print(user_id)
+	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = user_id })
+
+	if PlayerData[1] ~= nil then
+		activeUnits[PlayerData[1].registration] = {
+			cid = PlayerData[1].registration,
+			callSign = PlayerData[1].phone,
+			firstName = PlayerData[1].name,
+			lastName = PlayerData[1].name2,
+			radio = 50,
+			unitType = "police",
+			duty = true
+		}
+	end
+end)
 
 AddEventHandler("playerDropped", function(reason)
 	--// Delete player from the MDT on logout
@@ -83,16 +94,6 @@ RegisterNetEvent('mdt:server:openMDT', function()
 	local src = source
 	local userPlayerId = vRP.getUserId(src)
 	local PlayerData = vRP.query("vRP/get_vrp_users",{ id = userPlayerId })
-
-	activeUnits[PlayerData[1].registration] = {
-		cid = PlayerData[1].registration,
-		callSign = PlayerData[1].phone,
-		firstName = PlayerData[1].name,
-		lastName = PlayerData[1].name2,
-		radio = 50,
-		unitType = "police",
-		duty = true
-	}
 
 	local JobType = "police"
 	local bulletin = GetBulletins(JobType)

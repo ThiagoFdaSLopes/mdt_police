@@ -31,10 +31,9 @@ RegisterCommand('mdt', function()
     if vSERVER.checkPermission() then
         TriggerServerEvent('mdt:server:openMDT')
     else
-        TriggerEvent("Notify", "erro", "Deu erro")
+        TriggerEvent("Notify", "erro", "Sem permissao para abrir o tablet")
     end
 end, false)
-
 -----------------------------------------------------------------------------------------------------------------------------------------
 ---- FUNCTIONS MDT
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -83,7 +82,7 @@ local function RefreshGUI()
     isOpen = false
 end
 -----------------------------------------------------------------------------------------------------------------------------------------
---- EVENTS
+--- EVENT OPEN MDT
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent('mdt:client:open', function(bulletin, activeUnits, calls, cid, playerData)
     EnableGUI(true)
@@ -136,6 +135,10 @@ RegisterNetEvent('mdt:client:dashboardbulletin', function(sentData)
     SendNUIMessage({ type = "bulletin", data = sentData })
 end)
 
+RegisterNetEvent('mdt:client:exitMDT', function()
+    EnableGUI(false)
+end)
+
 -- RegisterNetEvent('mdt:client:dashboardWarrants', function()
 --     QBCore.Functions.TriggerCallback("mdt:server:getWarrants", function(data)
 --         if data then
@@ -149,7 +152,3 @@ end)
 --     TriggerEvent("mdt:client:dashboardWarrants")
 --     cb(true)
 -- end)
-
-RegisterNetEvent('mdt:client:exitMDT', function()
-    EnableGUI(false)
-end)

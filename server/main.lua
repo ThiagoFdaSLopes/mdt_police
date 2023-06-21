@@ -96,6 +96,8 @@ RegisterNetEvent('mdt:server:openMDT', function()
 		duty = true
 	}
 
+	print(#activeUnits)
+
 
 	local JobType = "police"
 	local bulletin = GetBulletins(JobType)

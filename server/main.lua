@@ -129,3 +129,19 @@ RegisterNetEvent('mdt:server:NewBulletin', function(title, info, time)
 
 	AddLog(("A new bulletin was added by %s with the title: %s!"):format(playerName, title))
 end)
+
+function cRP.getAllWarrants()
+    local WarrantData = {}
+    local data = MySQL.query.await("SELECT * FROM mdt_convictions")
+    for _, value in pairs(data) do
+        if value.warrant == "1" then
+			WarrantData[#WarrantData+1] = {
+                cid = value.cid,
+                linkedincident = value.linkedincident,
+                name = GetNameFromId(value.cid),
+                time = value.time
+            }
+        end
+    end
+	return WarrantData
+end

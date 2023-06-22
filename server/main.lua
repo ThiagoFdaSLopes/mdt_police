@@ -93,7 +93,7 @@ RegisterNetEvent('mdt:server:openMDT', function()
 
 	local JobType = "police"
 	local bulletin = GetBulletins(JobType)
-	-- local calls = exports['nc-dispatch']:GetDispatchCalls()
+	local calls = exports['nc-dispatch']:GetDispatchCalls()
 	TriggerClientEvent('mdt:client:dashboardbulletin', src, bulletin)
 	TriggerClientEvent('mdt:client:open', src, bulletin, activeUnits, calls, PlayerData[1].registration, PlayerData[1])
 end)

@@ -178,34 +178,34 @@ RegisterNetEvent('mdt:server:setWaypoint', function(callid)
 	end
 end)
 
--- RegisterNetEvent('mdt:server:sendMessage', function(message, time)
--- 	if message and time then
--- 		local src = source
--- 		local user_id = vRP.getUserId(src)
--- 		local PlayerData = vRP.getInformation(user_id)
--- 		if PlayerData[1] then
--- 			MySQL.scalar("SELECT pfp FROM `mdt_data` WHERE cid=:id LIMIT 1", {
--- 				id = PlayerData[1].registration -- % wildcard, needed to search for all alike results
--- 			}, function(data)
--- 				if data == "" then data = nil end
--- 				local ProfilePicture = ProfPic(PlayerData[1].sex, data)
--- 				local callsign = "50"
--- 				local Item = {
--- 					profilepic = ProfilePicture,
--- 					callsign = "50",
--- 					cid = PlayerData[1].registration,
--- 					name = '('..callsign..') '..PlayerData[1].name.." "..PlayerData[1].name2,
--- 					message = message,
--- 					time = time,
--- 					job = "police"
--- 				}
--- 				dispatchMessages[#dispatchMessages+1] = Item
--- 				TriggerClientEvent('mdt:client:dashboardMessage', -1, Item)
--- 				-- Send to all clients, for auto updating stuff, ya dig.
--- 			end)
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:sendMessage', function(message, time)
+	if message and time then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			MySQL.scalar("SELECT pfp FROM `mdt_data` WHERE cid=:id LIMIT 1", {
+				id = PlayerData[1].registration -- % wildcard, needed to search for all alike results
+			}, function(data)
+				if data == "" then data = nil end
+				local ProfilePicture = ProfPic(PlayerData[1].sex, data)
+				local callsign = "50"
+				local Item = {
+					profilepic = ProfilePicture,
+					callsign = "50",
+					cid = PlayerData[1].registration,
+					name = '('..callsign..') '..PlayerData[1].name.." "..PlayerData[1].name2,
+					message = message,
+					time = time,
+					job = "police"
+				}
+				dispatchMessages[#dispatchMessages+1] = Item
+				TriggerClientEvent('mdt:client:dashboardMessage', -1, Item)
+				-- Send to all clients, for auto updating stuff, ya dig.
+			end)
+		end
+	end
+end)
 
 RegisterNetEvent('mdt:server:setWaypoint:unit', function(cid)
 	local src = source
@@ -214,11 +214,11 @@ RegisterNetEvent('mdt:server:setWaypoint:unit', function(cid)
 	TriggerClientEvent("mdt:client:setWaypoint:unit", src, PlayerCoords)
 end)
 
--- RegisterNetEvent('mdt:server:refreshDispatchMsgs', function()
--- 	if IsJobAllowedToMDT("police") then
--- 		TriggerClientEvent('mdt:client:dashboardMessages', src, dispatchMessages)
--- 	end
--- end)
+RegisterNetEvent('mdt:server:refreshDispatchMsgs', function()
+	if IsJobAllowedToMDT("police") then
+		TriggerClientEvent('mdt:client:dashboardMessages', src, dispatchMessages)
+	end
+end)
 
 RegisterServerEvent("nc-mdt:dispatchStatus", function(bool)
 	isDispatchRunning = bool

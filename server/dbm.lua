@@ -18,10 +18,10 @@ end
 
 function GetNameFromId(cid)
 	-- Should be a scalar?
-	local result = MySQL.scalar.await('SELECT charinfo FROM players WHERE citizenid = @citizenid', { ['@citizenid'] = cid })
+	local result = MySQL.query.await('SELECT name, name2 FROM vrp_users WHERE registration = ?', { cid })
     if result ~= nil then
-        local charinfo = json.decode(result)
-        local fullname = charinfo['firstname']..' '..charinfo['lastname']
+        local charinfo = result
+        local fullname = charinfo[1]["name"]..' '..charinfo[1]["name2"]
         return fullname
     else
         --print('Player does not exist')

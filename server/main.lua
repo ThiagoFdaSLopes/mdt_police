@@ -163,20 +163,20 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CHAT DISPATCH
 -----------------------------------------------------------------------------------------------------------------------------------------
--- RegisterNetEvent('mdt:server:setWaypoint', function(callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local JobType = "police"
--- 	if JobType == 'police' or JobType == 'ambulance' then
--- 		if callid then
--- 			if isDispatchRunning then
--- 				local calls = exports['nc-dispatch']:GetDispatchCalls()
--- 				TriggerClientEvent('mdt:client:setWaypoint', src, calls[callid])
--- 			end
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:setWaypoint', function(callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			if isDispatchRunning then
+				local calls = exports['nc-dispatch']:GetDispatchCalls()
+				TriggerClientEvent('mdt:client:setWaypoint', src, calls[callid])
+			end
+		end
+	end
+end)
 
 -- RegisterNetEvent('mdt:server:sendMessage', function(message, time)
 -- 	if message and time then

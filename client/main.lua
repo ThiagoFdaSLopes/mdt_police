@@ -103,7 +103,7 @@ RegisterNetEvent('mdt:client:open', function(bulletin, activeUnits, calls, cid, 
 
     SendNUIMessage({ type = "data", activeUnits = activeUnits, citizenid = cid, ondutyonly = Config.OnlyShowOnDuty, name = "Welcome, Police "..playerData.name.." "..playerData.name2, location = playerStreetsLocation, fullname = playerData.name.. " "..playerData.name2, bulletin = bulletin })
     -- SendNUIMessage({ type = "calls", data = calls })
-    -- TriggerEvent("mdt:client:dashboardWarrants")
+    TriggerEvent("mdt:client:dashboardWarrants")
 end)
 --====================================================================================
 --               MAIN PAGE              --
@@ -139,16 +139,16 @@ RegisterNetEvent('mdt:client:exitMDT', function()
     EnableGUI(false)
 end)
 
--- RegisterNetEvent('mdt:client:dashboardWarrants', function()
---     QBCore.Functions.TriggerCallback("mdt:server:getWarrants", function(data)
---         if data then
---             SendNUIMessage({ type = "warrants", data = data })
---         end
---     end)
---     -- SendNUIMessage({ type = "warrants",})
--- end)
+RegisterNetEvent('mdt:client:dashboardWarrants', function()
+    local warrants = vSERVER.getAllWarrants()
+    if warrants ~= nil then
+        SendNUIMessage({ type = "warrants", data = warrants })
+    end
+end)
 
--- RegisterNUICallback("getAllDashboardData", function(data, cb)
---     TriggerEvent("mdt:client:dashboardWarrants")
---     cb(true)
--- end)
+RegisterNUICallback("getAllDashboardData", function(data, cb)
+    local warrants = vSERVER.getAllWarrants()
+    if warrants ~= nil then
+        SendNUIMessage({ type = "warrants", data = warrants })
+    end
+end)

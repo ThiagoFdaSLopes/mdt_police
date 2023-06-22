@@ -34,7 +34,8 @@ local isDispatchRunning = false
 RegisterNetEvent("nc-mdt:server:BateuCartao")
 AddEventHandler("nc-mdt:server:BateuCartao", function(source)
 	local src = source
-	local PlayerData = vRP.getInformation(src)
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
 
 	if PlayerData[1] ~= nil then
 		activeUnits[PlayerData[1].registration] = {

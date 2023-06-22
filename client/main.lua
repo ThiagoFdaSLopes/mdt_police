@@ -102,7 +102,7 @@ RegisterNetEvent('mdt:client:open', function(bulletin, activeUnits, calls, cid, 
     else playerStreetsLocation = area end
 
     SendNUIMessage({ type = "data", activeUnits = activeUnits, citizenid = cid, ondutyonly = Config.OnlyShowOnDuty, name = "Welcome, Police "..playerData.name.." "..playerData.name2, location = playerStreetsLocation, fullname = playerData.name.. " "..playerData.name2, bulletin = bulletin })
-    -- SendNUIMessage({ type = "calls", data = calls })
+    SendNUIMessage({ type = "calls", data = calls })
     TriggerEvent("mdt:client:dashboardWarrants")
 end)
 --====================================================================================

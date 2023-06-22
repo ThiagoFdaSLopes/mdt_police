@@ -250,13 +250,13 @@ RegisterNetEvent('mdt:client:setWaypoint', function(callInformation)
 end)
 
 RegisterNetEvent('mdt:client:callDetach', function(callid, sentData)
-    if AllowedJob("police") then 
+    if AllowedJob("police") then
         SendNUIMessage({ type = "callDetach", callid = callid, data = tonumber(sentData) }) 
     end
 end)
 
 RegisterNetEvent('mdt:client:callAttach', function(callid, sentData)
-    if AllowedJob("police") then 
+    if AllowedJob("police") then
         SendNUIMessage({ type = "callAttach", callid = callid, data = tonumber(sentData) })
     end
 end)

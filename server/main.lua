@@ -207,12 +207,12 @@ end)
 -- 	end
 -- end)
 
--- RegisterNetEvent('mdt:server:setWaypoint:unit', function(cid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerCoords = GetEntityCoords(GetPlayerPed(user_id))
--- 	TriggerClientEvent("mdt:client:setWaypoint:unit", src, PlayerCoords)
--- end)
+RegisterNetEvent('mdt:server:setWaypoint:unit', function(cid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerCoords = GetEntityCoords(GetPlayerPed(user_id))
+	TriggerClientEvent("mdt:client:setWaypoint:unit", src, PlayerCoords)
+end)
 
 -- RegisterNetEvent('mdt:server:refreshDispatchMsgs', function()
 -- 	if IsJobAllowedToMDT("police") then
@@ -223,10 +223,6 @@ end)
 RegisterServerEvent("nc-mdt:dispatchStatus", function(bool)
 	isDispatchRunning = bool
 end)
-
--- RegisterNetEvent('mdt:client:setWaypoint', function(callInformation)
---     SetNewWaypoint(callInformation['origin']['x'], callInformation['origin']['y'])
--- end)
 
 -- RegisterNetEvent('mdt:server:callDetach', function(callid)
 -- 	local src = source
@@ -268,21 +264,21 @@ end)
 -- 	end
 -- end)
 
--- RegisterNetEvent('mdt:server:setDispatchWaypoint', function(callid, cid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local callId = tonumber(callid)
--- 	local JobType = "police"
--- 	if JobType == 'police' or JobType == 'ambulance' then
--- 		if callId then
--- 			if isDispatchRunning then
--- 				local calls = exports['nc-dispatch']:GetDispatchCalls()
--- 				TriggerClientEvent('mdt:client:setWaypoint', src, calls[callId])
--- 			end
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:setDispatchWaypoint', function(callid, cid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local callId = tonumber(callid)
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callId then
+			if isDispatchRunning then
+				local calls = exports['nc-dispatch']:GetDispatchCalls()
+				TriggerClientEvent('mdt:client:setWaypoint', src, calls[callId])
+			end
+		end
+	end
+end)
 
 -- RegisterNetEvent('mdt:server:attachedUnits', function(callid)
 -- 	local src = source

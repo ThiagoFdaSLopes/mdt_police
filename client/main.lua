@@ -81,6 +81,17 @@ local function RefreshGUI()
     SendNUIMessage({ type = "show", enable = false, job = "police", rosterLink = Config.RosterLink["police"] })
     isOpen = false
 end
+
+--// Non local function so above EHs can utilise
+function AllowedJob(job)
+    for key, _ in pairs(Config.AllowedJobs) do
+        if key == job then
+            return true
+        end
+    end
+    --// Return false if current job is not in allowed list
+    return false
+end
 -----------------------------------------------------------------------------------------------------------------------------------------
 --- EVENT OPEN MDT
 -----------------------------------------------------------------------------------------------------------------------------------------

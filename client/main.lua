@@ -162,9 +162,9 @@ CreateThread(function()
     end
 end)
 
--- RegisterNetEvent('mdt:client:setWaypoint:unit', function(sentData)
---     SetNewWaypoint(sentData.x, sentData.y)
--- end)
+RegisterNetEvent('mdt:client:setWaypoint:unit', function(sentData)
+    SetNewWaypoint(sentData.x, sentData.y)
+end)
 
 -- RegisterNetEvent('mdt:client:dashboardMessage', function(sentData)
 --     SendNUIMessage({ type = "dispatchmessage", data = sentData })
@@ -231,14 +231,14 @@ end)
 --     cb(true)
 -- end)
 
--- RegisterNUICallback("setWaypointU", function(data, cb)
---     TriggerServerEvent('mdt:server:setWaypoint:unit', data.cid)
---     cb(true)
--- end)
+RegisterNUICallback("setWaypointU", function(data, cb)
+    TriggerServerEvent('mdt:server:setWaypoint:unit', data.cid)
+    cb(true)
+end)
 
--- RegisterNetEvent('mdt:client:setWaypoint', function(callInformation)
---     SetNewWaypoint(callInformation['origin']['x'], callInformation['origin']['y'])
--- end)
+RegisterNetEvent('mdt:client:setWaypoint', function(callInformation)
+    SetNewWaypoint(callInformation['origin']['x'], callInformation['origin']['y'])
+end)
 
 -- RegisterNetEvent('mdt:client:callDetach', function(callid, sentData)
 --     if AllowedJob("police") then 

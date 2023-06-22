@@ -191,10 +191,10 @@ end)
 --     end
 -- end)
 
--- RegisterNUICallback("setWaypoint", function(data, cb)
---     TriggerServerEvent('mdt:server:setWaypoint', data.callid)
---     cb(true)
--- end)
+RegisterNUICallback("setWaypoint", function(data, cb)
+    TriggerServerEvent('mdt:server:setWaypoint', data.callid)
+    cb(true)
+end)
 
 -- RegisterNUICallback("callDetach", function(data, cb)
 --     TriggerServerEvent('mdt:server:callDetach', data.callid)

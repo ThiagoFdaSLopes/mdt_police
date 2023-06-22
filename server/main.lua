@@ -224,45 +224,66 @@ RegisterServerEvent("nc-mdt:dispatchStatus", function(bool)
 	isDispatchRunning = bool
 end)
 
--- RegisterNetEvent('mdt:server:callDetach', function(callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local playerdata = {
--- 		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
--- 		job = "police",
--- 		cid = PlayerData[1].registration,
--- 		callsign = "50"
--- 	}
--- 	local JobType = "police"
--- 	if JobType == 'police' or JobType == 'ambulance' then
--- 		if callid then
--- 			TriggerEvent('dispatch:removeUnit', callid, playerdata, function(newNum)
--- 				TriggerClientEvent('mdt:client:callDetach', -1, callid, newNum)
--- 			end)
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:callDetach', function(callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local playerdata = {
+		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
+		job = "police",
+		cid = PlayerData[1].registration,
+		callsign = "50"
+	}
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			TriggerEvent('dispatch:removeUnit', callid, playerdata, function(newNum)
+				TriggerClientEvent('mdt:client:callDetach', -1, callid, newNum)
+			end)
+		end
+	end
+end)
 
--- RegisterNetEvent('mdt:server:callAttach', function(callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local playerdata = {
--- 		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
--- 		job = "police",
--- 		cid = PlayerData[1].registration,
--- 		callsign = "50"
--- 	}
--- 	local JobType = "police"
--- 	if JobType == 'police' or JobType == 'ambulance' then
--- 		if callid then
--- 			TriggerEvent('dispatch:addUnit', callid, playerdata, function(newNum)
--- 				TriggerClientEvent('mdt:client:callAttach', -1, callid, newNum)
--- 			end)
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:callDispatchDetach', function(callid, cid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local playerdata = {
+		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
+		job = "police",
+		cid = PlayerData[1].registration,
+		callsign = "50"
+	}
+	local callid = tonumber(callid)
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			TriggerEvent('dispatch:removeUnit', callid, playerdata, function(newNum)
+				TriggerClientEvent('mdt:client:callDetach', -1, callid, newNum)
+			end)
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:callAttach', function(callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local playerdata = {
+		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
+		job = "police",
+		cid = PlayerData[1].registration,
+		callsign = "50"
+	}
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			TriggerEvent('dispatch:addUnit', callid, playerdata, function(newNum)
+				TriggerClientEvent('mdt:client:callAttach', -1, callid, newNum)
+			end)
+		end
+	end
+end)
 
 RegisterNetEvent('mdt:server:setDispatchWaypoint', function(callid, cid)
 	local src = source
@@ -280,43 +301,64 @@ RegisterNetEvent('mdt:server:setDispatchWaypoint', function(callid, cid)
 	end
 end)
 
--- RegisterNetEvent('mdt:server:attachedUnits', function(callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local JobType = "police"
--- 	if JobType == 'police' or JobType == 'ambulance' then
--- 		if callid then
--- 			if isDispatchRunning then
--- 				local calls = exports['nc-dispatch']:GetDispatchCalls()
--- 				TriggerClientEvent('mdt:client:attachedUnits', src, calls[callid]['units'], callid)
--- 			end
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:callDragAttach', function(callid, cid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local playerdata = {
+		fullname = PlayerData[1].name.. " "..PlayerData[1].name2,
+		job = "police",
+		cid = PlayerData[1].registration,
+		callsign = "50"
+	}
+	local callId = tonumber(callid)
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			TriggerEvent('dispatch:addUnit', callId, playerdata, function(newNum)
+				TriggerClientEvent('mdt:client:callAttach', -1, callId, newNum)
+			end)
+		end
+	end
+end)
 
--- RegisterNetEvent('mdt:server:getCallResponses', function(callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	if IsPolice("police") then
--- 		if isDispatchRunning then
--- 			local calls = exports['nc-dispatch']:GetDispatchCalls()
--- 			TriggerClientEvent('mdt:client:getCallResponses', src, calls[callid]['responses'], callid)
--- 		end
--- 	end
--- end)
+RegisterNetEvent('mdt:server:attachedUnits', function(callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local JobType = "police"
+	if JobType == 'police' or JobType == 'ambulance' then
+		if callid then
+			if isDispatchRunning then
+				local calls = exports['nc-dispatch']:GetDispatchCalls()
+				TriggerClientEvent('mdt:client:attachedUnits', src, calls[callid]['units'], callid)
+			end
+		end
+	end
+end)
 
--- RegisterNetEvent('mdt:server:sendCallResponse', function(message, time, callid)
--- 	local src = source
--- 	local user_id = vRP.getUserId(src)
--- 	local PlayerData = vRP.getInformation(user_id)
--- 	local name = PlayerData[1].name.. " "..PlayerData[1].name2
--- 	if IsPolice("police") then
--- 		TriggerEvent('dispatch:sendCallResponse', src, callid, message, time, function(isGood)
--- 			if isGood then
--- 				TriggerClientEvent('mdt:client:sendCallResponse', -1, message, time, callid, name)
--- 			end
--- 		end)
--- 	end
--- end)
+RegisterNetEvent('mdt:server:getCallResponses', function(callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if IsPolice("police") then
+		if isDispatchRunning then
+			local calls = exports['nc-dispatch']:GetDispatchCalls()
+			TriggerClientEvent('mdt:client:getCallResponses', src, calls[callid]['responses'], callid)
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:sendCallResponse', function(message, time, callid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local name = PlayerData[1].name.. " "..PlayerData[1].name2
+	if IsPolice("police") then
+		TriggerEvent('dispatch:sendCallResponse', src, callid, message, time, function(isGood)
+			if isGood then
+				TriggerClientEvent('mdt:client:sendCallResponse', -1, message, time, callid, name)
+			end
+		end)
+	end
+end)

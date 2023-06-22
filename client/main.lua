@@ -184,52 +184,50 @@ RegisterNetEvent('mdt:client:dashboardMessages', function(sentData)
     SendNUIMessage({ type = "dispatchmessages", data = sentData })
 end)
 
--- RegisterNetEvent('dispatch:clNotify', function(sNotificationData, sNotificationId)
---     if LocalPlayer.state.isLoggedIn then
---         sNotificationData.playerJob = PlayerData.job.name
---         SendNUIMessage({ type = "call", data = sNotificationData })
---     end
--- end)
+RegisterNetEvent('dispatch:clNotify', function(sNotificationData, sNotificationId)
+    sNotificationData.playerJob = "police"
+    SendNUIMessage({ type = "call", data = sNotificationData })
+end)
 
 RegisterNUICallback("setWaypoint", function(data, cb)
     TriggerServerEvent('mdt:server:setWaypoint', data.callid)
     cb(true)
 end)
 
--- RegisterNUICallback("callDetach", function(data, cb)
---     TriggerServerEvent('mdt:server:callDetach', data.callid)
---     cb(true)
--- end)
+RegisterNUICallback("callDetach", function(data, cb)
+    TriggerServerEvent('mdt:server:callDetach', data.callid)
+    cb(true)
+end)
 
--- RegisterNUICallback("removeCallBlip", function(data, cb)
---     TriggerEvent('nc-dispatch:client:removeCallBlip', data.callid)
---     cb(true)
--- end)
+RegisterNUICallback("removeCallBlip", function(data, cb)
+    TriggerEvent('nc-dispatch:client:removeCallBlip', data.callid)
+    cb(true)
+end)
 
--- RegisterNUICallback("callAttach", function(data, cb)
---     TriggerServerEvent('mdt:server:callAttach', data.callid)
---     cb(true)
--- end)
+RegisterNUICallback("callAttach", function(data, cb)
+    TriggerServerEvent('mdt:server:callAttach', data.callid)
+    cb(true)
+end)
 
--- RegisterNUICallback("attachedUnits", function(data, cb)
---     TriggerServerEvent('mdt:server:attachedUnits', data.callid)
---     cb(true)
--- end)
+RegisterNUICallback("attachedUnits", function(data, cb)
+    TriggerServerEvent('mdt:server:attachedUnits', data.callid)
+    cb(true)
+end)
 
--- RegisterNUICallback("callDispatchDetach", function(data, cb)
---     TriggerServerEvent('mdt:server:callDispatchDetach', data.callid, data.cid)
---     cb(true)
--- end)
+RegisterNUICallback("callDispatchDetach", function(data, cb)
+    TriggerServerEvent('mdt:server:callDispatchDetach', data.callid, data.cid)
+    cb(true)
+end)
 
--- RegisterNUICallback("setDispatchWaypoint", function(data, cb)
---     TriggerServerEvent('mdt:server:setDispatchWaypoint', data.callid, data.cid)
---     cb(true)
--- end)
+RegisterNUICallback("setDispatchWaypoint", function(data, cb)
+    TriggerServerEvent('mdt:server:setDispatchWaypoint', data.callid, data.cid)
+    cb(true)
+end)
 
--- RegisterNUICallback("callDragAttach", function(data, cb)
---     TriggerServerEvent('mdt:server:callDragAttach', data.callid, data.cid)
---     cb(true)
--- end)
+RegisterNUICallback("callDragAttach", function(data, cb)
+    TriggerServerEvent('mdt:server:callDragAttach', data.callid, data.cid)
+    cb(true)
+end)
 
 RegisterNUICallback("setWaypointU", function(data, cb)
     TriggerServerEvent('mdt:server:setWaypoint:unit', data.cid)
@@ -240,20 +238,26 @@ RegisterNetEvent('mdt:client:setWaypoint', function(callInformation)
     SetNewWaypoint(callInformation['origin']['x'], callInformation['origin']['y'])
 end)
 
--- RegisterNetEvent('mdt:client:callDetach', function(callid, sentData)
---     if AllowedJob("police") then 
---         SendNUIMessage({ type = "callDetach", callid = callid, data = tonumber(sentData) }) 
---     end
--- end)
+RegisterNetEvent('mdt:client:callDetach', function(callid, sentData)
+    if AllowedJob("police") then 
+        SendNUIMessage({ type = "callDetach", callid = callid, data = tonumber(sentData) }) 
+    end
+end)
 
--- RegisterNetEvent('mdt:client:attachedUnits', function(sentData, callid)
---     SendNUIMessage({ type = "attachedUnits", data = sentData, callid = callid })
--- end)
+RegisterNetEvent('mdt:client:callAttach', function(callid, sentData)
+    if AllowedJob("police") then 
+        SendNUIMessage({ type = "callAttach", callid = callid, data = tonumber(sentData) })
+    end
+end)
 
--- RegisterNetEvent('mdt:client:getCallResponses', function(sentData, sentCallId)
---     SendNUIMessage({ type = "getCallResponses", data = sentData, callid = sentCallId })
--- end)
+RegisterNetEvent('mdt:client:attachedUnits', function(sentData, callid)
+    SendNUIMessage({ type = "attachedUnits", data = sentData, callid = callid })
+end)
 
--- RegisterNetEvent('mdt:client:sendCallResponse', function(message, time, callid, name)
---     SendNUIMessage({ type = "sendCallResponse", message = message, time = time, callid = callid, name = name })
--- end)
+RegisterNetEvent('mdt:client:getCallResponses', function(sentData, sentCallId)
+    SendNUIMessage({ type = "getCallResponses", data = sentData, callid = sentCallId })
+end)
+
+RegisterNetEvent('mdt:client:sendCallResponse', function(message, time, callid, name)
+    SendNUIMessage({ type = "sendCallResponse", message = message, time = time, callid = callid, name = name })
+end)

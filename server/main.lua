@@ -491,18 +491,118 @@ end)
 ----------------------------------------------------------------------------------------
 -- PAGE PROFILE
 ----------------------------------------------------------------------------------------
-function cRP.SearchProfileMdt(cb, sentData)
-	if not sentData then return {} end
+function cRP.getProfile(sentId)
+	print(sentId)
+	-- if not sentId then return cb({}) end
+
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local JobType = "police"
+	local JobName = "police"
+
+	local licencesdata = {
+        ['driver'] = false,
+        ['business'] = false,
+        ['weapon'] = false,
+		['pilot'] = false
+	}
+
+	local person = {
+		cid = PlayerData[1].registration,
+		firstname = PlayerData[1].name,
+		lastname = PlayerData[1].name2,
+		job = "police",
+		grade = "lspd",
+		pp = ProfPic(PlayerData[1].sex),
+		licences = licencesdata,
+		dob = (2023 - PlayerData[1].age),
+		mdtinfo = '',
+		fingerprint = '',
+		tags = {},
+		vehicles = {},
+		properties = {},
+		gallery = {},
+		isLimited = false
+	}
+
+	if Config.PoliceJobs[JobName] then
+		local convictions = GetConvictions({person.cid})
+		person.convictions2 = {}
+		local convCount = 1
+		if next(convictions) then
+			for _, conv in pairs(convictions) do
+				if conv.warrant then person.warrant = true end
+				local charges = json.decode(conv.charges)
+				for _, charge in pairs(charges) do
+					person.convictions2[convCount] = charge
+					convCount = convCount + 1
+				end
+			end
+		end
+		local hash = {}
+		person.convictions = {}
+
+		for _,v in ipairs(person.convictions2) do
+			if (not hash[v]) then
+				person.convictions[#person.convictions+1] = v -- found this dedupe method on sourceforge somewhere, copy+pasta dev, needs to be refined later
+				hash[v] = true
+			end
+		end
+		local vehicles = GetPlayerVehicles(user_id)
+
+		if vehicles then
+			person.vehicles = vehicles
+		end
+		-- local Coords = {}
+		-- local Houses = {}
+		-- local properties= GetPlayerProperties(user_id)
+		-- for k, v in pairs(properties) do
+		-- 	Coords[#Coords+1] = {
+        --         coords = json.decode(v["coords"]),
+        --     }
+		-- end
+		-- for index = 1, #Coords, 1 do
+		-- 	Houses[#Houses+1] = {
+        --         label = properties[index]["label"],
+        --         coords = tostring(Coords[index]["coords"]["enter"]["x"]..",".. Coords[index]["coords"]["enter"]["y"].. ",".. Coords[index]["coords"]["enter"]["z"]),
+        --     }
+        -- end
+		-- -- if properties then
+		-- 	person.properties = Houses
+		-- -- end
+	end
+
+	local mdtData = GetPersonInformation(sentId, JobType)
+	if mdtData then
+		person.mdtinfo = mdtData.information
+		person.fingerprint = mdtData.fingerprint
+		person.profilepic = mdtData.pfp
+		person.tags = json.decode(mdtData.tags)
+		person.gallery = json.decode(mdtData.gallery)
+	end
+
+	local mdtData2 = GetPfpFingerPrintInformation(sentId)
+	if mdtData2 then
+		person.fingerprint = mdtData2.fingerprint
+		person.profilepic = mdtData and mdtData.pfp or ""
+	end
+
+	return person
+end
+
+function cRP.SearchProfileMdt(sentData)
 	local src = source
 	local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.getInformation(user_id)
 	if PlayerData[1] then
 		local JobType = "police"
 		if JobType ~= nil then
-			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex, md.pfp FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE :query OR LOWER(`p.name`) LIKE :query OR LOWER(`registration`) LIKE :query OR LOWER(`fingerprint`) LIKE :query AND jobtype = :jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE @query OR LOWER(`name`) LIKE @query OR LOWER(`registration`) LIKE @query OR LOWER(`fingerprint`) LIKE @query AND jobtype = @jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			print("Quantidade: "..people[1].name)
 			local citizenIds = {}
 			local citizenIdIndexMap = {}
-			if not next(people) then cb({}) return end
+			-- if not next(people) then cb({}) return end
 
 			for index, data in pairs(people) do
 				people[index]['warrant'] = false
@@ -516,6 +616,7 @@ function cRP.SearchProfileMdt(cb, sentData)
 				people[index]['pp'] = ProfPic(data.sex)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index
+				print("saiu daqui")
 			end
 
 			local convictions = GetConvictions(citizenIds)
@@ -526,15 +627,22 @@ function cRP.SearchProfileMdt(cb, sentData)
 
 					local charges = json.decode(conv.charges)
 					people[citizenIdIndexMap[conv.cid]].convictions = people[citizenIdIndexMap[conv.cid]].convictions + #charges
+					print("saiu daqui 2")
 				end
+				print("saiu daqui 3")
 			end
 
-
-			return cb(people)
+			print("chegou no retorno 4")
+			print(people[1].name)
+			print(people[1].name2)
+			print(people[1].warrant)
+			print(people[1].sex)
+			print(people[1].convictions)
+			print(people[1].licences)
+			print(people[1].registration)
+			return people
 		end
 	end
-
-	return cb({})
 end
 
 RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName, sName, tags, gallery, fingerprint, licenses)

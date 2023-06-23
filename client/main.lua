@@ -282,3 +282,20 @@ end)
 RegisterNetEvent('mdt:client:sendCallResponse', function(message, time, callid, name)
     SendNUIMessage({ type = "sendCallResponse", message = message, time = time, callid = callid, name = name })
 end)
+
+-- RegisterNUICallback("dispatchNotif", function(data, cb)
+--     local info = data['data']
+--     local mentioned = false
+--     if callSign ~= "" then if string.find(string.lower(info['message']),string.lower(string.gsub(callSign,'-','%%-'))) then mentioned = true end end
+--     if mentioned then
+
+--         -- Send notification to phone??
+--         TriggerEvent('erp_phone:sendNotification', {img = info['profilepic'], title = "Dispatch (Mention)", content = info['message'], time = 7500, customPic = true })
+
+--         PlaySoundFrontend(-1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", false)
+--         PlaySoundFrontend(-1, "Event_Start_Text", "GTAO_FM_Events_Soundset", 0)
+--     else
+--         TriggerEvent('erp_phone:sendNotification', {img = info['profilepic'], title = "Dispatch ("..info['name']..")", content = info['message'], time = 5000, customPic = true })
+--     end
+--     cb(true)
+-- end)

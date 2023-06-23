@@ -67,7 +67,7 @@ function CreateUser(cid, tableName)
 end
 
 function GetPlayerVehicles(cid, cb)
-	return MySQL.query.await('SELECT id, plate, vehicle FROM player_vehicles WHERE citizenid=:cid', { cid = cid })
+	return MySQL.query.await('SELECT id, plate, vehicle FROM vrp_vehicles WHERE user_id=:cid', { cid = cid })
 end
 
 function GetBulletins(JobType)

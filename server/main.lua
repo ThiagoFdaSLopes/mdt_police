@@ -491,8 +491,8 @@ end)
 ----------------------------------------------------------------------------------------
 -- PAGE PROFILE
 ----------------------------------------------------------------------------------------
-function cRP.SearchProfileMdt(source, cb, sentData)
-	if not sentData then  return cb({}) end
+function cRP.SearchProfileMdt(source, sentData)
+	if not sentData then return {} end
 	local src = source
 	local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.getInformation(user_id)

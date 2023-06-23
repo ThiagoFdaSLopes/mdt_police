@@ -499,7 +499,7 @@ function cRP.SearchProfileMdt(source, cb, sentData)
 	if PlayerData[1] then
 		local JobType = "police"
 		if JobType ~= nil then
-			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex, md.pfp FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.firstname'), ' ', JSON_VALUE(p.name2, '$.lastname'))) LIKE :query OR LOWER(`p.name`) LIKE :query OR LOWER(`registration`) LIKE :query OR LOWER(`fingerprint`) LIKE :query AND jobtype = :jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex, md.pfp FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE :query OR LOWER(`p.name`) LIKE :query OR LOWER(`registration`) LIKE :query OR LOWER(`fingerprint`) LIKE :query AND jobtype = :jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
 			local citizenIds = {}
 			local citizenIdIndexMap = {}
 			if not next(people) then cb({}) return end

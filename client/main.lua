@@ -265,6 +265,16 @@ RegisterNetEvent('mdt:client:attachedUnits', function(sentData, callid)
     SendNUIMessage({ type = "attachedUnits", data = sentData, callid = callid })
 end)
 
+RegisterNuiCallback("getCallResponses", function(data, cb)
+    TriggerServerEvent('mdt:server:getCallResponses', data.callid)
+    cb(true)
+end)
+
+RegisterNUICallback("sendCallResponse", function(data, cb)
+    TriggerServerEvent('mdt:server:sendCallResponse', data.message, data.time, data.callid)
+    cb(true)
+end)
+
 RegisterNetEvent('mdt:client:getCallResponses', function(sentData, sentCallId)
     SendNUIMessage({ type = "getCallResponses", data = sentData, callid = sentCallId })
 end)

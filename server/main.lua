@@ -1,4 +1,21 @@
------------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName, sName, tags, gallery, fingerprint, licenses)
+	local src = source
+	local Player = QBCore.Functions.GetPlayer(src)
+	ManageLicenses(cid, licenses)
+	if Player then
+		local JobType = GetJobType(Player.PlayerData.job.name)
+		if JobType == 'doj' then JobType = 'police' end
+		MySQL.Async.insert('INSERT INTO mdt_data (cid, information, pfp, jobtype, tags, gallery, fingerprint) VALUES (:cid, :information, :pfp, :jobtype, :tags, :gallery, :fingerprint) ON DUPLICATE KEY UPDATE cid = :cid, information = :information, pfp = :pfp, tags = :tags, gallery = :gallery, fingerprint = :fingerprint', {
+			cid = cid,
+			information = information,
+			pfp = pfp,
+			jobtype = JobType,
+			tags = json.encode(tags),
+			gallery = json.encode(gallery),
+			fingerprint = fingerprint,
+		})
+	end
+end)-----------------------------------------------------------------------------------------------------------------------------------------
 -- VRP
 -----------------------------------------------------------------------------------------------------------------------------------------
 local Tunnel = module("vrp", "lib/Tunnel")
@@ -486,5 +503,73 @@ RegisterNetEvent('mdt:server:newReport', function(existing, id, title, reporttyp
 				end
 			end
 		end
+	end
+end)
+----------------------------------------------------------------------------------------
+-- PAGE PROFILE
+----------------------------------------------------------------------------------------
+function cRP.SearchProfileMdt(source, cb, sentData)
+	if not sentData then  return cb({}) end
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		local JobType = "police"
+		if JobType ~= nil then
+			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, md.pfp FROM vrp_users AS p LEFT JOIN mdt_data AS md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.firstname'), ' ', JSON_VALUE(p.name2, '$.lastname'))) LIKE :query OR LOWER(`p.name`) LIKE :query OR LOWER(`registration`) LIKE :query OR LOWER(`fingerprint`) LIKE :query AND jobtype = :jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			local citizenIds = {}
+			local citizenIdIndexMap = {}
+			if not next(people) then cb({}) return end
+
+			for index, data in pairs(people) do
+				people[index]['warrant'] = false
+				people[index]['convictions'] = 0
+				people[index]['licences'] = {
+                    ['driver'] = false,
+                    ['business'] = false,
+                    ['weapon'] = false,
+                    ['pilot'] = false
+                }
+				people[index]['pp'] = ProfPic(data.sex)
+				citizenIds[#citizenIds+1] = data.registration
+				citizenIdIndexMap[data.registration] = index
+			end
+
+			local convictions = GetConvictions(citizenIds)
+
+			if next(convictions) then
+				for _, conv in pairs(convictions) do
+					if conv.warrant then people[citizenIdIndexMap[conv.cid]].warrant = true end
+
+					local charges = json.decode(conv.charges)
+					people[citizenIdIndexMap[conv.cid]].convictions = people[citizenIdIndexMap[conv.cid]].convictions + #charges
+				end
+			end
+
+
+			return cb(people)
+		end
+	end
+
+	return cb({})
+end
+
+RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName, sName, tags, gallery, fingerprint, licenses)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	-- ManageLicenses(cid, licenses)
+	if PlayerData[1] then
+		local JobType = "police"
+		if JobType == 'doj' then JobType = 'police' end
+		MySQL.Async.insert('INSERT INTO mdt_data (cid, information, pfp, jobtype, tags, gallery, fingerprint) VALUES (:cid, :information, :pfp, :jobtype, :tags, :gallery, :fingerprint) ON DUPLICATE KEY UPDATE cid = :cid, information = :information, pfp = :pfp, tags = :tags, gallery = :gallery, fingerprint = :fingerprint', {
+			cid = cid,
+			information = information,
+			pfp = pfp,
+			jobtype = JobType,
+			tags = json.encode(tags),
+			gallery = json.encode(gallery),
+			fingerprint = fingerprint,
+		})
 	end
 end)

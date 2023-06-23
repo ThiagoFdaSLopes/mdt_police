@@ -350,3 +350,151 @@ end)
 RegisterNetEvent('mdt:client:reportComplete', function(sentData)
     SendNUIMessage({ type = "reportComplete", data = sentData })
 end)
+
+------------------------------------------------------------------------------------------------------------------------------
+--             PROFILE PAGE             --
+------------------------------------------------------------------------------------------------------------------------------
+RegisterNUICallback("searchProfiles", function(data, cb)
+    local p = promise.new()
+
+    vSERVER.SearchProfileMdt(function(result)
+        p:resolve(result)
+    end, data.name)
+
+    local playerDataResult = Citizen.Await(p)
+
+    cb(playerDataResult)
+end)
+
+
+RegisterNetEvent('mdt:client:searchProfile', function(sentData, isLimited)
+    SendNUIMessage({ type = "profiles", data = sentData, isLimited = isLimited })
+end)
+
+RegisterNUICallback("saveProfile", function(data, cb)
+    local profilepic = data.pfp
+    local information = data.description
+    local cid = data.id
+    local fName = data.fName
+    local sName = data.sName
+    local tags = data.tags
+    local gallery = data.gallery
+    local fingerprint = data.fingerprint
+    local licenses = data.licenses
+
+    TriggerServerEvent("mdt:server:saveProfile", profilepic, information, cid, fName, sName, tags, gallery, fingerprint, licenses)
+    cb(true)
+end)
+
+-- RegisterNUICallback("getProfileData", function(data, cb)
+--     local id = data.id
+--     local p = nil
+--     local getProfileDataPromise = function(data)
+--         if p then return end
+--         p = promise.new()
+--         QBCore.Functions.TriggerCallback('mdt:server:GetProfileData', function(result)
+--             p:resolve(result)
+--         end, data)
+--         return Citizen.Await(p)
+--     end
+--     local pP = nil
+--     local result = getProfileDataPromise(id)
+
+--     --[[ local getProfileProperties = function(data)
+--         if pP then return end
+--         pP = promise.new()
+--         QBCore.Functions.TriggerCallback('nc-phone:server:MeosGetPlayerHouses', function(result)
+--             pP:resolve(result)
+--         end, data)
+--         return Citizen.Await(pP)
+--     end
+--     local propertiesResult = getProfileProperties(id)
+--     result.properties = propertiesResult
+--      ]]
+--     local vehicles=result.vehicles
+--     for i=1,#vehicles do
+--         local vehicle=result.vehicles[i]
+--         result.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
+--     end
+--     p = nil
+--     return cb(result)
+-- end)
+
+-- RegisterNUICallback("newTag", function(data, cb)
+--     if data.id ~= "" and data.tag ~= "" then
+--         TriggerServerEvent('mdt:server:newTag', data.id, data.tag)
+--     end
+--     cb(true)
+-- end)
+
+-- RegisterNUICallback("removeProfileTag", function(data, cb)
+--     local cid = data.cid
+--     local tagtext = data.text
+--     TriggerServerEvent('mdt:server:removeProfileTag', cid, tagtext)
+--     cb(true)
+-- end)
+
+-- RegisterNUICallback("updateLicence", function(data, cb)
+--     local type = data.type
+--     local status = data.status
+--     local cid = data.cid
+--     TriggerServerEvent('mdt:server:updateLicense', cid, type, status)
+--     cb(true)
+-- end)
+
+-- RegisterNUICallback("searchIncidents", function(data, cb)
+--     local incident = data.incident
+--     TriggerServerEvent('mdt:server:searchIncidents', incident)
+--     cb(true)
+-- end)
+
+-- RegisterNUICallback("getIncidentData", function(data, cb)
+--     local id = data.id
+--     TriggerServerEvent('mdt:server:getIncidentData', id)
+--     cb(true)
+-- end)
+
+-- RegisterNUICallback("incidentSearchPerson", function(data, cb)
+--     local name = data.name
+--     TriggerServerEvent('mdt:server:incidentSearchPerson', name )
+--     cb(true)
+-- end)
+
+-- RegisterNetEvent('mdt:client:getProfileData', function(sentData, isLimited)
+--     if not isLimited then
+--         local vehicles = sentData['vehicles']
+--         for i=1, #vehicles do
+--             sentData['vehicles'][i]['plate'] = string.upper(sentData['vehicles'][i]['plate'])
+--             local tempModel = vehicles[i]['model']
+--             if tempModel and tempModel ~= "Unknown" then
+--                 local DisplayNameModel = GetDisplayNameFromVehicleModel(tempModel)
+--                 local LabelText = GetLabelText(DisplayNameModel)
+--                 if LabelText == "NULL" then LabelText = DisplayNameModel end
+--                 sentData['vehicles'][i]['model'] = LabelText
+--             end
+--         end
+--     end
+--     SendNUIMessage({ type = "profileData", data = sentData, isLimited = isLimited })
+-- end)
+
+-- RegisterNetEvent('mdt:client:getIncidents', function(sentData)
+--     SendNUIMessage({ type = "incidents", data = sentData })
+-- end)
+
+-- RegisterNetEvent('mdt:client:getIncidentData', function(sentData, sentConvictions)
+--     SendNUIMessage({ type = "incidentData", data = sentData, convictions = sentConvictions })
+-- end)
+
+-- RegisterNetEvent('mdt:client:incidentSearchPerson', function(sentData)
+--     SendNUIMessage({ type = "incidentSearchPerson", data = sentData })
+-- end)
+
+
+-- RegisterNUICallback('SetHouseLocation', function(data, cb)
+--     local coords = {}
+--     for word in data.coord[1]:gmatch('[^,%s]+') do
+--         coords[#coords+1] = tonumber(word)
+--     end
+--     SetNewWaypoint(coords[1], coords[2])
+--     QBCore.Functions.Notify('GPS has been set!', 'success')
+-- end)

@@ -30,8 +30,6 @@ RegisterKeyMapping('mdt', 'Open Police MDT', 'keyboard', 'i')
 RegisterCommand('mdt', function()
     if vSERVER.checkPermission() then
         TriggerServerEvent('mdt:server:openMDT')
-    else
-        TriggerEvent("Notify", "erro", "Sem permissao para abrir o tablet")
     end
 end, false)
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -354,17 +352,31 @@ end)
 ------------------------------------------------------------------------------------------------------------------------------
 --             PROFILE PAGE             --
 ------------------------------------------------------------------------------------------------------------------------------
-RegisterNUICallback("searchProfiles", function(data, cb)
-    local p = promise.new()
-    vSERVER.SearchProfileMdt(function(result)
-        p:resolve(result)
-    end, data.name)
+RegisterNUICallback("getProfileData", function(data, cb)
+    local id = data.id
+    local dataPlayer = vSERVER.getProfile(id)
 
-    local resultData = Citizen.Await(p)
-    print("Aguardando.")
-    print("Aguardando..")
-    print("Aguardando...")
-    cb(resultData)
+    --[[ local getProfileProperties = function(data)
+        if pP then return end
+        pP = promise.new()
+        QBCore.Functions.TriggerCallback('nc-phone:server:MeosGetPlayerHouses', function(result)
+            pP:resolve(result)
+        end, data)
+        return Citizen.Await(pP)
+    end
+    local propertiesResult = getProfileProperties(id)
+    result.properties = propertiesResult
+     ]]
+    local vehicles= dataPlayer.vehicles
+    for i=1,#vehicles do
+        local vehicle=result.vehicles[i]
+        result.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
+    end
+    cb(dataPlayer)
+end)
+RegisterNUICallback("searchProfiles", function(data, cb)
+    local resultado = vSERVER.SearchProfileMdt(data.name)
+    cb(resultado)
 end)
 
 RegisterNetEvent('mdt:client:searchProfile', function(sentData, isLimited)
@@ -385,40 +397,6 @@ RegisterNUICallback("saveProfile", function(data, cb)
     TriggerServerEvent("mdt:server:saveProfile", profilepic, information, cid, fName, sName, tags, gallery, fingerprint, licenses)
     cb(true)
 end)
-
--- RegisterNUICallback("getProfileData", function(data, cb)
---     local id = data.id
---     local p = nil
---     local getProfileDataPromise = function(data)
---         if p then return end
---         p = promise.new()
---         QBCore.Functions.TriggerCallback('mdt:server:GetProfileData', function(result)
---             p:resolve(result)
---         end, data)
---         return Citizen.Await(p)
---     end
---     local pP = nil
---     local result = getProfileDataPromise(id)
-
---     --[[ local getProfileProperties = function(data)
---         if pP then return end
---         pP = promise.new()
---         QBCore.Functions.TriggerCallback('nc-phone:server:MeosGetPlayerHouses', function(result)
---             pP:resolve(result)
---         end, data)
---         return Citizen.Await(pP)
---     end
---     local propertiesResult = getProfileProperties(id)
---     result.properties = propertiesResult
---      ]]
---     local vehicles=result.vehicles
---     for i=1,#vehicles do
---         local vehicle=result.vehicles[i]
---         result.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
---     end
---     p = nil
---     return cb(result)
--- end)
 
 -- RegisterNUICallback("newTag", function(data, cb)
 --     if data.id ~= "" and data.tag ~= "" then

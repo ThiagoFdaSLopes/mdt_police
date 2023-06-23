@@ -355,10 +355,14 @@ end)
 --             PROFILE PAGE             --
 ------------------------------------------------------------------------------------------------------------------------------
 RegisterNUICallback("searchProfiles", function(data, cb)
-    local playerDataResult = vSERVER.SearchProfileMdt(data.name)
-    cb(playerDataResult)
-end)
+    local p = Promise()
+    vSERVER.SearchProfileMdt(function(result)
+        p:resolve(result)
+    end, data.name)
 
+    local resultData = Citizen.Await(p)
+    cb(resultData)
+end)
 
 RegisterNetEvent('mdt:client:searchProfile', function(sentData, isLimited)
     SendNUIMessage({ type = "profiles", data = sentData, isLimited = isLimited })

@@ -5014,7 +5014,7 @@ function searchProfilesResults(result) {
   let profileHTML = "";
 
   result.forEach((value) => {
-    let charinfo = value.charinfo;
+    // let charinfo = value.charinfo;
     let metadata = value.licences;
 
     if (typeof value.charinfo == "string") {
@@ -5025,7 +5025,7 @@ function searchProfilesResults(result) {
       metadata = JSON.parse(metadata);
     }
 
-    let name = charinfo.firstname + " " + charinfo.lastname;
+    let name = value.name + " " + value.name2;
     let warrant = "red-tag";
     let convictions = "red-tag";
 
@@ -5063,7 +5063,7 @@ function searchProfilesResults(result) {
     }
 
     profileHTML += `
-                  <div class="profile-item" data-id="${value.citizenid}">
+                  <div class="profile-item" data-id="${value.registration}">
                       <img src="${value.pp}" class="profile-image">
                       <div style="display: flex; flex-direction: column; margin-top: 2.5px; margin-left: 5px; width: 100%; padding: 5px;">
                       <div style="display: flex; flex-direction: column;">
@@ -5073,7 +5073,7 @@ function searchProfilesResults(result) {
                               </div>
                           </div>
                           <div class="profile-bottom-info">
-                              <div class="profile-id">ID: ${value.citizenid}</div>&nbsp;
+                              <div class="profile-id">ID: ${value.registration}</div>&nbsp;
                           </div>
                       </div>
                   </div>

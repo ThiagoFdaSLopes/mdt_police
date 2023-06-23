@@ -299,3 +299,54 @@ end)
 --     end
 --     cb(true)
 -- end)
+
+--====================================================================================
+------------------------------------------
+--               REPORTS PAGE           --
+------------------------------------------
+--====================================================================================
+
+RegisterNUICallback("getAllReports", function(data, cb)
+    TriggerServerEvent('mdt:server:getAllReports')
+    cb(true)
+end)
+
+RegisterNUICallback("getReportData", function(data, cb)
+    local id = data.id
+    TriggerServerEvent('mdt:server:getReportData', id)
+    cb(true)
+end)
+
+RegisterNUICallback("searchReports", function(data, cb)
+    local name = data.name
+    TriggerServerEvent('mdt:server:searchReports', name)
+    cb(true)
+end)
+
+RegisterNUICallback("newReport", function(data, cb)
+    local existing = data.existing
+    local id = data.id
+    local title = data.title
+    local reporttype = data.type
+    local details = data.details
+    local tags = data.tags
+    local gallery = data.gallery
+    local officers = data.officers
+    local civilians = data.civilians
+    local time = data.time
+
+    TriggerServerEvent('mdt:server:newReport', existing, id, title, reporttype, details, tags, gallery, officers, civilians, time)
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getAllReports', function(sentData)
+    SendNUIMessage({ type = "reports", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:getReportData', function(sentData)
+    SendNUIMessage({ type = "reportData", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:reportComplete', function(sentData)
+    SendNUIMessage({ type = "reportComplete", data = sentData })
+end)

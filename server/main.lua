@@ -362,3 +362,129 @@ RegisterNetEvent('mdt:server:sendCallResponse', function(message, time, callid)
 		end)
 	end
 end)
+
+------------------------------------------------------------------------------------------------------------------------
+-- GET ALL REPORTS
+------------------------------------------------------------------------------------------------------------------------
+
+RegisterServerEvent("mdt:server:AddLog", function(text)
+	AddLog(text)
+end)
+
+RegisterNetEvent('mdt:server:getAllReports', function()
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		local JobType = "police"
+		if JobType == 'police' or JobType == 'doj' or JobType == 'ambulance' then
+			if JobType == 'doj' then JobType = 'police' end
+			local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE jobtype = ? ORDER BY `id` DESC LIMIT 30", {
+				jobtype = JobType
+			})
+			TriggerClientEvent('mdt:client:getAllReports', src, matches)
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:getReportData', function(sentId)
+	if sentId then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType == 'police' or JobType == 'doj' or JobType == 'ambulance' then
+				if JobType == 'doj' then JobType = 'police' end
+				local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE `id` = ? AND `jobtype` = ? LIMIT 1", {
+					id = sentId,
+					jobtype = JobType
+				})
+				local data = matches[1]
+				data['tags'] = json.decode(data['tags'])
+				data['officersinvolved'] = json.decode(data['officersinvolved'])
+				data['civsinvolved'] = json.decode(data['civsinvolved'])
+				data['gallery'] = json.decode(data['gallery'])
+				TriggerClientEvent('mdt:client:getReportData', src, data)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:searchReports', function(sentSearch)
+	if sentSearch then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType == 'police' or JobType == 'doj' or JobType == 'ambulance' then
+				if JobType == 'doj' then JobType = 'police' end
+				local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE `id` LIKE :query OR LOWER(`author`) LIKE :query OR LOWER(`title`) LIKE :query OR LOWER(`type`) LIKE :query OR LOWER(`details`) LIKE :query OR LOWER(`tags`) LIKE :query AND `jobtype` = :jobtype ORDER BY `id` DESC LIMIT 50", {
+					query = string.lower('%'..sentSearch..'%'), -- % wildcard, needed to search for all alike results
+					jobtype = JobType
+				})
+
+				TriggerClientEvent('mdt:client:getAllReports', src, matches)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:newReport', function(existing, id, title, reporttype, details, tags, gallery, officers, civilians, time)
+	if id then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType ~= nil then
+				local fullname = PlayerData[1].name.." "..PlayerData[1].name2
+				local function InsertReport()
+					MySQL.insert('INSERT INTO `mdt_reports` (`title`, `author`, `type`, `details`, `tags`, `gallery`, `officersinvolved`, `civsinvolved`, `time`, `jobtype`) VALUES (:title, :author, :type, :details, :tags, :gallery, :officersinvolved, :civsinvolved, :time, :jobtype)', {
+						title = title,
+						author = fullname,
+						type = reporttype,
+						details = details,
+						tags = json.encode(tags),
+						gallery = json.encode(gallery),
+						officersinvolved = json.encode(officers),
+						civsinvolved = json.encode(civilians),
+						time = tostring(time),
+						jobtype = JobType,
+					}, function(r)
+						if r then
+							TriggerClientEvent('mdt:client:reportComplete', src, r)
+							TriggerEvent('mdt:server:AddLog', "A new report was created by "..fullname.." with the title ("..title..") and ID ("..id..")")
+						end
+					end)
+				end
+
+				local function UpdateReport()
+					MySQL.update("UPDATE `mdt_reports` SET `title` = :title, type = :type, details = :details, tags = :tags, gallery = :gallery, officersinvolved = :officersinvolved, civsinvolved = :civsinvolved, jobtype = :jobtype WHERE `id` = :id LIMIT 1", {
+						title = title,
+						type = reporttype,
+						details = details,
+						tags = json.encode(tags),
+						gallery = json.encode(gallery),
+						officersinvolved = json.encode(officers),
+						civsinvolved = json.encode(civilians),
+						jobtype = JobType,
+						id = id,
+					}, function(affectedRows)
+						if affectedRows > 0 then
+							TriggerClientEvent('mdt:client:reportComplete', src, id)
+							TriggerEvent('mdt:server:AddLog', "A report was updated by "..fullname.." with the title ("..title..") and ID ("..id..")")
+						end
+					end)
+				end
+
+				if existing then
+					UpdateReport()
+				elseif not existing then
+					InsertReport()
+				end
+			end
+		end
+	end
+end)

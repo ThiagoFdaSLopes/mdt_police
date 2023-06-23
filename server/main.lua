@@ -379,7 +379,7 @@ RegisterNetEvent('mdt:server:getAllReports', function()
 		local JobType = "police"
 		if JobType == 'police' or JobType == 'doj' or JobType == 'ambulance' then
 			if JobType == 'doj' then JobType = 'police' end
-			local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE jobtype = ? ORDER BY `id` DESC LIMIT 30", {
+			local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE jobtype = :jobtype ORDER BY `id` DESC LIMIT 30", {
 				jobtype = JobType
 			})
 			TriggerClientEvent('mdt:client:getAllReports', src, matches)
@@ -396,7 +396,7 @@ RegisterNetEvent('mdt:server:getReportData', function(sentId)
 			local JobType = "police"
 			if JobType == 'police' or JobType == 'doj' or JobType == 'ambulance' then
 				if JobType == 'doj' then JobType = 'police' end
-				local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE `id` = ? AND `jobtype` = ? LIMIT 1", {
+				local matches = MySQL.query.await("SELECT * FROM `mdt_reports` WHERE `id` = :id AND `jobtype` = :jobtype LIMIT 1", {
 					id = sentId,
 					jobtype = JobType
 				})

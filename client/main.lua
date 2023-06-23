@@ -355,12 +355,15 @@ end)
 --             PROFILE PAGE             --
 ------------------------------------------------------------------------------------------------------------------------------
 RegisterNUICallback("searchProfiles", function(data, cb)
-    local p = Promise()
+    local p = promise.new()
     vSERVER.SearchProfileMdt(function(result)
         p:resolve(result)
     end, data.name)
 
     local resultData = Citizen.Await(p)
+    print("Aguardando.")
+    print("Aguardando..")
+    print("Aguardando...")
     cb(resultData)
 end)
 

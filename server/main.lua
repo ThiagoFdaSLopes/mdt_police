@@ -617,17 +617,19 @@ function cRP.SearchProfileMdt(sentData)
 				print("saiu daqui")
 			end
 
-			local convictions = GetConvictions(citizenIds)
+			if people[1].name then
+				local convictions = GetConvictions(citizenIds)
 
-			if next(convictions) then
-				for _, conv in pairs(convictions) do
-					if conv.warrant then people[citizenIdIndexMap[conv.cid]].warrant = true end
+				if next(convictions) then
+					for _, conv in pairs(convictions) do
+						if conv.warrant then people[citizenIdIndexMap[conv.cid]].warrant = true end
 
-					local charges = json.decode(conv.charges)
-					people[citizenIdIndexMap[conv.cid]].convictions = people[citizenIdIndexMap[conv.cid]].convictions + #charges
-					print("saiu daqui 2")
+						local charges = json.decode(conv.charges)
+						people[citizenIdIndexMap[conv.cid]].convictions = people[citizenIdIndexMap[conv.cid]].convictions + #charges
+						print("saiu daqui 2")
+					end
+					print("saiu daqui 3")
 				end
-				print("saiu daqui 3")
 			end
 
 			print("chegou no retorno 4")

@@ -660,3 +660,91 @@ RegisterNetEvent("mdt:server:updateLicense", function(cid, type, status)
 		end
 	end
 end)
+
+-----------------------------------------------------------------------------------------------------------------------
+-- INCIDENTS
+-----------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent('mdt:server:searchIncidents', function(query)
+	if query then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType == 'police' or JobType == 'doj' then
+				local matches = MySQL.query.await("SELECT * FROM `mdt_incidents` WHERE `id` LIKE :query OR LOWER(`title`) LIKE :query OR LOWER(`author`) LIKE :query OR LOWER(`details`) LIKE :query OR LOWER(`tags`) LIKE :query OR LOWER(`officersinvolved`) LIKE :query OR LOWER(`civsinvolved`) LIKE :query OR LOWER(`author`) LIKE :query ORDER BY `id` DESC LIMIT 50", {
+					query = string.lower('%'..query..'%') -- % wildcard, needed to search for all alike results
+				})
+
+				TriggerClientEvent('mdt:client:getIncidents', src, matches)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:getIncidentData', function(sentId)
+	if sentId then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType == 'police' or JobType == 'doj' then
+				local matches = MySQL.query.await("SELECT * FROM `mdt_incidents` WHERE `id` = :id", {
+					id = sentId
+				})
+				local data = matches[1]
+				data['tags'] = json.decode(data['tags'])
+				data['officersinvolved'] = json.decode(data['officersinvolved'])
+				data['civsinvolved'] = json.decode(data['civsinvolved'])
+				data['evidence'] = json.decode(data['evidence'])
+
+
+				local convictions = MySQL.query.await("SELECT * FROM `mdt_convictions` WHERE `linkedincident` = :id", {
+					id = sentId
+				})
+				if convictions ~= nil then
+					for i=1, #convictions do
+						local res = GetNameFromId(convictions[i]['cid'])
+						if res ~= nil then
+							convictions[i]['name'] = res
+						else
+							convictions[i]['name'] = "Unknown"
+						end
+						convictions[i]['charges'] = json.decode(convictions[i]['charges'])
+					end
+				end
+				TriggerClientEvent('mdt:client:getIncidentData', src, data, convictions)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:incidentSearchPerson', function(query)
+    if query then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = "police"
+			if JobType == 'police' or JobType == 'doj' then
+				local function ProfPic(gender, profilepic)
+					if profilepic then return profilepic end;
+					if gender == "Female" then return "img/female.png" end;
+					return "img/male.png"
+				end
+
+				local result = MySQL.query.await("SELECT p.registration, p.name, p.name2, md.pfp from vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(`name`) LIKE :query OR LOWER(`registration`) LIKE :query AND `jobtype` = :jobtype LIMIT 30", {
+					query = string.lower('%'..query..'%'), -- % wildcard, needed to search for all alike results
+					jobtype = JobType
+				})
+				local data = {}
+				for i=1, #result do
+					local charinfo = json.decode(result[i])
+					data[i] = {id = result[i].registration, firstname = charinfo.name, lastname = charinfo.name2, profilepic = ProfPic(charinfo.sex, result[i].pfp)}
+				end
+				TriggerClientEvent('mdt:client:incidentSearchPerson', src, data)
+            end
+        end
+    end
+end)

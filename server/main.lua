@@ -501,7 +501,7 @@ function cRP.getProfile(sentId)
 	local JobType = "police"
 	local JobName = "police"
 
-	local licencesdata = {
+	local licencesdata = PlayerData[1].metadata or {
         ['driver'] = false,
         ['business'] = false,
         ['weapon'] = false,
@@ -605,19 +605,14 @@ function cRP.SearchProfileMdt(sentData)
 			for index, data in pairs(people) do
 				people[index]['warrant'] = false
 				people[index]['convictions'] = 0
-				people[index]['licences'] = {
-                    ['driver'] = false,
-                    ['business'] = false,
-                    ['weapon'] = false,
-                    ['pilot'] = false
-                }
+				people[index]['licences'] = PlayerData[1].metadata
 				people[index]['pp'] = ProfPic(data.sex)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index
-				print("saiu daqui")
 			end
+			print(#people)
 
-			if people[1].name then
+			if #people ~= 0 then
 				local convictions = GetConvictions(citizenIds)
 
 				if next(convictions) then
@@ -626,20 +621,9 @@ function cRP.SearchProfileMdt(sentData)
 
 						local charges = json.decode(conv.charges)
 						people[citizenIdIndexMap[conv.cid]].convictions = people[citizenIdIndexMap[conv.cid]].convictions + #charges
-						print("saiu daqui 2")
 					end
-					print("saiu daqui 3")
 				end
 			end
-
-			print("chegou no retorno 4")
-			print(people[1].name)
-			print(people[1].name2)
-			print(people[1].warrant)
-			print(people[1].sex)
-			print(people[1].convictions)
-			print(people[1].licences)
-			print(people[1].registration)
 			return people
 		end
 	end
@@ -649,7 +633,7 @@ RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName
 	local src = source
 	local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.getInformation(user_id)
-	-- ManageLicenses(cid, licenses)
+	ManageLicenses(user_id, cid, licenses)
 	if PlayerData[1] then
 		local JobType = "police"
 		if JobType == 'doj' then JobType = 'police' end
@@ -662,5 +646,17 @@ RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName
 			gallery = json.encode(gallery),
 			fingerprint = fingerprint,
 		})
+	end
+end)
+
+RegisterNetEvent("mdt:server:updateLicense", function(cid, type, status)
+	print("registration: "..cid)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		if GetJobType("police") == 'police' then
+			ManageLicense(user_id, cid, type, status)
+		end
 	end
 end)

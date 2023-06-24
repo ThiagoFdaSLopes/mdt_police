@@ -367,11 +367,11 @@ RegisterNUICallback("getProfileData", function(data, cb)
     local propertiesResult = getProfileProperties(id)
     result.properties = propertiesResult
      ]]
-    local vehicles= dataPlayer.vehicles
+    local vehicles = dataPlayer.vehicles
+
     for i=1,#vehicles do
-        local vehicle=result.vehicles[i]
-        result.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
-        print(result.vehicles[i]['model'])
+        local vehicle = dataPlayer.vehicles[i].vehicle
+        dataPlayer.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle))
     end
     cb(dataPlayer)
 end)

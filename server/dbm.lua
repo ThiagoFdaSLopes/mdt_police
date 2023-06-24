@@ -1,3 +1,12 @@
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- VRP
+-----------------------------------------------------------------------------------------------------------------------------------------
+local Tunnel = module("vrp", "lib/Tunnel")
+local Proxy = module("vrp", "lib/Proxy")
+vRP = Proxy.getInterface("vRP")
+vRPC = Tunnel.getInterface("vRP")
+-----------------------------------------------------------------------------------------------------------------------------------------
+
 -- Get CitizenIDs from Player License
 function GetCitizenID(license)
     local result = MySQL.query.await("SELECT citizenid FROM players WHERE license = ?", {license,})
@@ -137,37 +146,37 @@ function GetPlayerLicenses(identifier)
     end
 end
 
-function ManageLicense(identifier, type, status)
-    local Player = QBCore.Functions.GetPlayerByCitizenId(identifier)
+function ManageLicense(id, identifier, type, status)
+    local Player = vRP.getInformation(id)
     local licenseStatus = nil
     if status == "give" then licenseStatus = true elseif status == "revoke" then licenseStatus = false end
-    if Player ~= nil then
-        local licences = Player.PlayerData.metadata["licences"]
+    if Player[1] ~= nil then
+        local licences = json.decode(Player[1].metadata)
         local newLicenses = {}
         for k, v in pairs(licences) do
-            local status = v
+            local newStatus = v
             if k == type then
-                status = licenseStatus
+                newStatus = licenseStatus
             end
-            newLicenses[k] = status
+            newLicenses[k] = newStatus
         end
-        Player.Functions.SetMetaData("licences", newLicenses)
+        MySQL.query.await('UPDATE `vrp_users` SET `metadata` = @metadata WHERE registration = @identifier', {['@metadata'] = json.encode(newLicenses), ['@identifier'] = identifier})
     else
         local licenseType = '$.licences.'..type
-        local result = MySQL.query.await('UPDATE `players` SET `metadata` = JSON_REPLACE(`metadata`, ?, ?) WHERE `citizenid` = ?', {licenseType, licenseStatus, identifier}) --seems to not work on older MYSQL versions, think about alternative
+        local result = MySQL.query.await('UPDATE `vrp_users` SET `metadata` = JSON_REPLACE(`metadata`, ?, ?) WHERE `registration` = ?', {licenseType, licenseStatus, identifier}) --seems to not work on older MYSQL versions, think about alternative
     end
 end
 
-function ManageLicenses(identifier, incomingLicenses)
-    local Player = QBCore.Functions.GetPlayerByCitizenId(identifier)
-    if Player ~= nil then
-        Player.Functions.SetMetaData("licences", incomingLicenses)
-
+function ManageLicenses(id, identifier, incomingLicenses)
+    local Player = vRP.getInformation(id)
+    if Player[1] ~= nil then
+        MySQL.scalar.await('UPDATE `vrp_users` SET `metadata` = @metadata WHERE registration = @identifier', {['@metadata'] = json.encode(incomingLicenses), ['@identifier'] = identifier})
+        Player[1].metadata = incomingLicenses
     else
-        local result = MySQL.scalar.await('SELECT metadata FROM players WHERE citizenid = @identifier', {['@identifier'] = identifier})
+        local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
         result = json.decode(result)
 
-        result.licences = result.licences or {
+        result.metadata = result.metadata or {
             ['driver'] = true,
             ['business'] = false,
             ['weapon'] = false,
@@ -175,8 +184,8 @@ function ManageLicenses(identifier, incomingLicenses)
         }
 
         for k, _ in pairs(incomingLicenses) do
-            result.licences[k] = incomingLicenses[k]
+            result.metadata[k] = incomingLicenses[k]
         end
-        MySQL.query.await('UPDATE `players` SET `metadata` = @metadata WHERE citizenid = @citizenid', {['@metadata'] = json.encode(result), ['@citizenid'] = identifier})
+        MySQL.query.await('UPDATE `vrp_users` SET `metadata` = @metadata WHERE registration = @identifier', {['@metadata'] = json.encode(result), ['@identifier'] = identifier})
     end
 end

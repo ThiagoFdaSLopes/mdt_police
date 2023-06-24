@@ -30,7 +30,7 @@ function GetNameFromId(cid)
 	local result = MySQL.query.await('SELECT name, name2 FROM vrp_users WHERE registration = ?', { cid })
     if result ~= nil then
         local charinfo = result
-        local fullname = charinfo[1]["name"]..' '..charinfo[1]["name2"]
+        local fullname = charinfo[1].name..' '..charinfo[1].name2
         return fullname
     else
         --print('Player does not exist')

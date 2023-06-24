@@ -371,6 +371,7 @@ RegisterNUICallback("getProfileData", function(data, cb)
     for i=1,#vehicles do
         local vehicle=result.vehicles[i]
         result.vehicles[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
+        print(result.vehicles[i]['model'])
     end
     cb(dataPlayer)
 end)
@@ -398,27 +399,27 @@ RegisterNUICallback("saveProfile", function(data, cb)
     cb(true)
 end)
 
--- RegisterNUICallback("newTag", function(data, cb)
---     if data.id ~= "" and data.tag ~= "" then
---         TriggerServerEvent('mdt:server:newTag', data.id, data.tag)
---     end
---     cb(true)
--- end)
+RegisterNUICallback("newTag", function(data, cb)
+    if data.id ~= "" and data.tag ~= "" then
+        TriggerServerEvent('mdt:server:newTag', data.id, data.tag)
+    end
+    cb(true)
+end)
 
--- RegisterNUICallback("removeProfileTag", function(data, cb)
---     local cid = data.cid
---     local tagtext = data.text
---     TriggerServerEvent('mdt:server:removeProfileTag', cid, tagtext)
---     cb(true)
--- end)
+RegisterNUICallback("removeProfileTag", function(data, cb)
+    local cid = data.cid
+    local tagtext = data.text
+    TriggerServerEvent('mdt:server:removeProfileTag', cid, tagtext)
+    cb(true)
+end)
 
--- RegisterNUICallback("updateLicence", function(data, cb)
---     local type = data.type
---     local status = data.status
---     local cid = data.cid
---     TriggerServerEvent('mdt:server:updateLicense', cid, type, status)
---     cb(true)
--- end)
+RegisterNUICallback("updateLicence", function(data, cb)
+    local type = data.type
+    local status = data.status
+    local cid = data.cid
+    TriggerServerEvent('mdt:server:updateLicense', cid, type, status)
+    cb(true)
+end)
 
 -- RegisterNUICallback("searchIncidents", function(data, cb)
 --     local incident = data.incident

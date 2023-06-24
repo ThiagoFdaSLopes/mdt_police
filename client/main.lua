@@ -421,24 +421,6 @@ RegisterNUICallback("updateLicence", function(data, cb)
     cb(true)
 end)
 
--- RegisterNUICallback("searchIncidents", function(data, cb)
---     local incident = data.incident
---     TriggerServerEvent('mdt:server:searchIncidents', incident)
---     cb(true)
--- end)
-
--- RegisterNUICallback("getIncidentData", function(data, cb)
---     local id = data.id
---     TriggerServerEvent('mdt:server:getIncidentData', id)
---     cb(true)
--- end)
-
--- RegisterNUICallback("incidentSearchPerson", function(data, cb)
---     local name = data.name
---     TriggerServerEvent('mdt:server:incidentSearchPerson', name )
---     cb(true)
--- end)
-
 -- RegisterNetEvent('mdt:client:getProfileData', function(sentData, isLimited)
 --     if not isLimited then
 --         local vehicles = sentData['vehicles']
@@ -456,19 +438,6 @@ end)
 --     SendNUIMessage({ type = "profileData", data = sentData, isLimited = isLimited })
 -- end)
 
--- RegisterNetEvent('mdt:client:getIncidents', function(sentData)
---     SendNUIMessage({ type = "incidents", data = sentData })
--- end)
-
--- RegisterNetEvent('mdt:client:getIncidentData', function(sentData, sentConvictions)
---     SendNUIMessage({ type = "incidentData", data = sentData, convictions = sentConvictions })
--- end)
-
--- RegisterNetEvent('mdt:client:incidentSearchPerson', function(sentData)
---     SendNUIMessage({ type = "incidentSearchPerson", data = sentData })
--- end)
-
-
 -- RegisterNUICallback('SetHouseLocation', function(data, cb)
 --     local coords = {}
 --     for word in data.coord[1]:gmatch('[^,%s]+') do
@@ -477,3 +446,36 @@ end)
 --     SetNewWaypoint(coords[1], coords[2])
 --     QBCore.Functions.Notify('GPS has been set!', 'success')
 -- end)
+
+------------------------------------------------------------------------------------------------------------------------------
+--             INCIDENT PAGE             --
+------------------------------------------------------------------------------------------------------------------------------
+RegisterNUICallback("searchIncidents", function(data, cb)
+    local incident = data.incident
+    TriggerServerEvent('mdt:server:searchIncidents', incident)
+    cb(true)
+end)
+
+RegisterNUICallback("getIncidentData", function(data, cb)
+    local id = data.id
+    TriggerServerEvent('mdt:server:getIncidentData', id)
+    cb(true)
+end)
+
+RegisterNUICallback("incidentSearchPerson", function(data, cb)
+    local name = data.name
+    TriggerServerEvent('mdt:server:incidentSearchPerson', name )
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getIncidents', function(sentData)
+    SendNUIMessage({ type = "incidents", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:getIncidentData', function(sentData, sentConvictions)
+    SendNUIMessage({ type = "incidentData", data = sentData, convictions = sentConvictions })
+end)
+
+RegisterNetEvent('mdt:client:incidentSearchPerson', function(sentData)
+    SendNUIMessage({ type = "incidentSearchPerson", data = sentData })
+end)

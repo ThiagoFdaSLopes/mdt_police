@@ -77,7 +77,6 @@ RegisterNetEvent("nc-mdt:server:ToggleDuty")
 AddEventHandler("nc-mdt:server:ToggleDuty", function(source)
 	local src = source
 	local PlayerData = vRP.getInformation(src)
-	print("Deslogado "..PlayerData[1].name)
 	--// Remove from MDT
 	activeUnits[PlayerData[1].registration] = nil
 end)
@@ -646,7 +645,6 @@ RegisterNetEvent("mdt:server:saveProfile", function(pfp, information, cid, fName
 end)
 
 RegisterNetEvent("mdt:server:updateLicense", function(cid, type, status)
-	print("registration: "..cid)
 	local src = source
 	local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.getInformation(user_id)
@@ -1019,7 +1017,7 @@ function cRP.SearchVehicles(sentData)
 			if not next(vehicles) then return {} end
 
 			for _, value in ipairs(vehicles) do
-				if value.desmanchado == 0 then
+				if value.detido == 0 then
 					value.state = "Out"
 				elseif value.desmanchado == 1 then
 					value.state = "Garaged"
@@ -1094,4 +1092,108 @@ RegisterNetEvent('mdt:server:getVehicleData', function(plate)
 			end
 		end
 	end
+end)
+
+RegisterNetEvent('mdt:server:saveVehicleInfo', function(dbid, plate, imageurl, notes, stolen, code5, impoundInfo)
+	if plate then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			if GetJobType("police") == 'police' then
+				if dbid == nil then dbid = 0 end;
+				local fullname = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+				TriggerEvent('mdt:server:AddLog', "A vehicle with the plate ("..plate..") has a new image ("..imageurl..") edited by "..fullname)
+				if tonumber(dbid) == 0 then
+					MySQL.insert('INSERT INTO `mdt_vehicleinfo` (`plate`, `information`, `image`, `code5`, `stolen`) VALUES (:plate, :information, :image, :code5, :stolen)', { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1"), information = notes, image = imageurl, code5 = code5, stolen = stolen }, function(infoResult)
+						if infoResult then
+							TriggerClientEvent('mdt:client:updateVehicleDbId', src, infoResult)
+							TriggerEvent('mdt:server:AddLog', "A vehicle with the plate ("..plate..") was added to the vehicle information database by "..fullname)
+						end
+					end)
+				elseif tonumber(dbid) > 0 then
+					MySQL.update("UPDATE mdt_vehicleinfo SET `information`= :information, `image`= :image, `code5`= :code5, `stolen`= :stolen WHERE `plate`= :plate LIMIT 1", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1"), information = notes, image = imageurl, code5 = code5, stolen = stolen })
+				end
+
+				if impoundInfo.impoundChanged then
+					local vehicle = MySQL.single.await("SELECT p.id, p.plate, i.vehicleid AS impoundid FROM `vrp_vehicles` p LEFT JOIN `mdt_impound` i ON i.vehicleid = p.id WHERE plate=:plate", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1") })
+					if impoundInfo.impoundActive then
+						local plateVehicl, linkedreport, fee, time = impoundInfo['plate'], impoundInfo['linkedreport'], impoundInfo['fee'], impoundInfo['time']
+						if (plateVehicl and linkedreport and fee and time) then
+							if vehicle.impoundid == nil then
+								-- This section is copy pasted from request impound and needs some attention.
+								-- sentVehicle doesnt exist.
+								-- data is defined twice
+								-- INSERT INTO will not work if it exists already (which it will)
+								local data = vehicle
+								MySQL.insert('INSERT INTO `mdt_impound` (`vehicleid`, `linkedreport`, `fee`, `time`) VALUES (:vehicleid, :linkedreport, :fee, :time)', {
+									vehicleid = data['id'],
+									linkedreport = linkedreport,
+									fee = fee,
+									time = os.time() + (time * 60)
+								}, function(res)
+									-- notify?
+									local dataVeh = {
+										vehicleid = data['id'],
+										plate = plate,
+										beingcollected = 0,
+										vehicle = sentVehicle,
+										officer = PlayerData[1].name.. ' ' ..PlayerData[1].name2,
+										number = PlayerData[1].phone,
+										time = os.time() * 1000,
+										src = src,
+									}
+									local vehiclePl = NetworkGetEntityFromNetworkId(sentVehicle)
+									FreezeEntityPosition(vehiclePl, true)
+									local impound = {}
+									impound[#impound+1] = dataVeh
+
+									TriggerClientEvent("police:client:ImpoundVehicle", src, true, fee)
+								end)
+								-- Read above commenting
+							end
+						end
+					else
+						if vehicle.impoundid ~= nil then
+							local data = vehicle
+							local result = MySQL.single.await("SELECT id, vehicle, fuel, engine, body FROM `vrp_vehicles` WHERE plate=:plate LIMIT 1", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1")})
+							if result then
+								local data = result
+								MySQL.update("DELETE FROM `mdt_impound` WHERE vehicleid=:vehicleid", { vehicleid = data['id'] })
+
+								result.currentSelection = impoundInfo.CurrentSelection
+								result.plate = plate
+								TriggerClientEvent('nc-mdt:client:TakeOutImpound', src, result)
+							end
+
+						end
+					end
+				end
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('police:server:TakeOutImpound', function(plate)
+    local src = source
+	MySQL.query.await('UPDATE vrp_vehicles SET detido = ? WHERE plate  = ?', {0, plate})
+    TriggerClientEvent('Notify', src, "Vehicle unimpounded!", 'success')
+end)
+
+RegisterNetEvent('police:server:Impound', function(plate, fullImpound, price, body, engine, fuel)
+    local src = source
+    local price = price and price or 0
+    if IsVehicleOwned(plate) then
+        if not fullImpound then
+            MySQL.query.await(
+                'UPDATE vrp_vehicles SET detido = ?, body = ?, engine = ?, fuel = ? WHERE plate = ?',
+                {0, body, engine, fuel, plate})
+            TriggerClientEvent('Notify', src, "Vehicle taken into depot for $" .. price .. "!")
+        else
+            MySQL.query.await(
+                'UPDATE vrp_vehicles SET detido = ?, body = ?, engine = ?, fuel = ? WHERE plate = ?',
+                {1, body, engine, fuel, plate})
+				TriggerClientEvent('Notify', src, "Vehicle seized!")
+        end
+    end
 end)

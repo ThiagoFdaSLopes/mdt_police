@@ -862,3 +862,141 @@ RegisterNetEvent('mdt:server:getAllIncidents', function()
 		end
 	end
 end)
+
+-----------------------------------------------------------------------------------------------------------------------
+-- BOLOS PAGE
+-----------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent('mdt:server:searchBolos', function(sentSearch)
+	if sentSearch then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		local JobType = GetJobType("police")
+		if JobType == 'police' or JobType == 'ambulance' then
+			local matches = MySQL.query.await("SELECT * FROM `mdt_bolos` WHERE `id` LIKE :query OR LOWER(`title`) LIKE :query OR `plate` LIKE :query OR LOWER(`owner`) LIKE :query OR LOWER(`individual`) LIKE :query OR LOWER(`detail`) LIKE :query OR LOWER(`officersinvolved`) LIKE :query OR LOWER(`tags`) LIKE :query OR LOWER(`author`) LIKE :query AND jobtype = :jobtype", {
+				query = string.lower('%'..sentSearch..'%'), -- % wildcard, needed to search for all alike results
+				jobtype = JobType
+			})
+			TriggerClientEvent('mdt:client:getBolos', src, matches)
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:getAllBolos', function()
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	local JobType = GetJobType("police")
+	if JobType == 'police' or JobType == 'ambulance' then
+		local matches = MySQL.query.await("SELECT * FROM `mdt_bolos` WHERE jobtype = :jobtype", {jobtype = JobType})
+		TriggerClientEvent('mdt:client:getAllBolos', src, matches)
+	end
+end)
+
+RegisterNetEvent('mdt:server:getBoloData', function(sentId)
+	if sentId then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		local JobType = GetJobType("police")
+		if JobType == 'police' or JobType == 'ambulance' then
+			local matches = MySQL.query.await("SELECT * FROM `mdt_bolos` WHERE `id` = :id AND jobtype = :jobtype LIMIT 1", {
+				id = sentId,
+				jobtype = JobType
+			})
+
+			local data = matches[1]
+			data['tags'] = json.decode(data['tags'])
+			data['officersinvolved'] = json.decode(data['officersinvolved'])
+			data['gallery'] = json.decode(data['gallery'])
+			TriggerClientEvent('mdt:client:getBoloData', src, data)
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:newBolo', function(existing, id, title, plate, owner, individual, detail, tags, gallery, officersinvolved, time)
+	if id then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		local JobType = GetJobType("police")
+		if JobType == 'police' or JobType == 'ambulance' then
+			local fullname = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+
+			local function InsertBolo()
+				MySQL.insert('INSERT INTO `mdt_bolos` (`title`, `author`, `plate`, `owner`, `individual`, `detail`, `tags`, `gallery`, `officersinvolved`, `time`, `jobtype`) VALUES (:title, :author, :plate, :owner, :individual, :detail, :tags, :gallery, :officersinvolved, :time, :jobtype)', {
+					title = title,
+					author = fullname,
+					plate = plate,
+					owner = owner,
+					individual = individual,
+					detail = detail,
+					tags = json.encode(tags),
+					gallery = json.encode(gallery),
+					officersinvolved = json.encode(officersinvolved),
+					time = tostring(time),
+					jobtype = JobType
+				}, function(r)
+					if r then
+						TriggerClientEvent('mdt:client:boloComplete', src, r)
+						TriggerEvent('mdt:server:AddLog', "A new BOLO was created by "..fullname.." with the title ("..title..") and ID ("..id..")")
+					end
+				end)
+			end
+
+			local function UpdateBolo()
+				MySQL.update("UPDATE mdt_bolos SET `title`=:title, plate=:plate, owner=:owner, individual=:individual, detail=:detail, tags=:tags, gallery=:gallery, officersinvolved=:officersinvolved WHERE `id`=:id AND jobtype = :jobtype LIMIT 1", {
+					title = title,
+					plate = plate,
+					owner = owner,
+					individual = individual,
+					detail = detail,
+					tags = json.encode(tags),
+					gallery = json.encode(gallery),
+					officersinvolved = json.encode(officersinvolved),
+					id = id,
+					jobtype = JobType
+				}, function(r)
+					if r then
+						TriggerClientEvent('mdt:client:boloComplete', src, id)
+						TriggerEvent('mdt:server:AddLog', "A BOLO was updated by "..fullname.." with the title ("..title..") and ID ("..id..")")
+					end
+				end)
+			end
+
+			if existing then
+				UpdateBolo()
+			elseif not existing then
+				InsertBolo()
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:deleteBolo', function(id)
+	if id then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		local JobType = GetJobType("police")
+		if JobType == 'police' then
+			local fullname = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+			MySQL.update("DELETE FROM `mdt_bolos` WHERE id=:id", { id = id, jobtype = JobType })
+			TriggerEvent('mdt:server:AddLog', "A BOLO was deleted by "..fullname.." with the ID ("..id..")")
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:deleteICU', function(id)
+	if id then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		local JobType = GetJobType("police")
+		if JobType == 'ambulance' then
+			local fullname = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+			MySQL.update("DELETE FROM `mdt_bolos` WHERE id=:id", { id = id, jobtype = JobType })
+			TriggerEvent('mdt:server:AddLog', "A ICU Check-in was deleted by "..fullname.." with the ID ("..id..")")
+		end
+	end
+end)

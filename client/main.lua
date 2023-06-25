@@ -479,3 +479,26 @@ end)
 RegisterNetEvent('mdt:client:incidentSearchPerson', function(sentData)
     SendNUIMessage({ type = "incidentSearchPerson", data = sentData })
 end)
+
+RegisterNUICallback("saveIncident", function(data, cb)
+    TriggerServerEvent('mdt:server:saveIncident', data.ID, data.title, data.information, data.tags, data.officers, data.civilians, data.evidence, data.associated, data.time)
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:updateIncidentDbId', function(sentData)
+    SendNUIMessage({ type = "updateIncidentDbId", data = tonumber(sentData) })
+end)
+
+RegisterNUICallback("removeIncidentCriminal", function(data, cb)
+    TriggerServerEvent('mdt:server:removeIncidentCriminal', data.cid, data.incidentId)
+    cb(true)
+end)
+
+RegisterNUICallback("getAllIncidents", function(data, cb)
+    TriggerServerEvent('mdt:server:getAllIncidents')
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getAllIncidents', function(sentData)
+    SendNUIMessage({ type = "incidents", data = sentData })
+end)

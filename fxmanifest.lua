@@ -19,7 +19,8 @@ server_scripts {
 client_scripts{
     '@vrp/lib/utils.lua',
     'client/main.lua',
-    'client/cl_impound.lua'
+    'client/cl_impound.lua',
+    'client/camera.lua'
 } 
 
 ui_page 'ui/dashboard.html'

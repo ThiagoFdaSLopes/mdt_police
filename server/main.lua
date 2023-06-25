@@ -1048,8 +1048,50 @@ function cRP.SearchVehicles(sentData)
 			-- idk if this works or I have to call cb first then return :shrug:
 			return vehicles
 		end
-
 		return {}
 	end
-
 end
+
+RegisterNetEvent('mdt:server:getVehicleData', function(plate)
+	if plate then
+		local src = source
+		local user_id = vRP.getUserId(src)
+		local PlayerData = vRP.getInformation(user_id)
+		if PlayerData[1] then
+			local JobType = GetJobType("police")
+			if JobType == 'police' or JobType == 'doj' then
+				local vehicle = MySQL.query.await("SELECT pv.*, p.name, p.name2 from vrp_vehicles pv LEFT JOIN vrp_users p ON pv.user_id = p.id where pv.plate = :plate LIMIT 1", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1")})
+				if vehicle and vehicle[1] then
+					vehicle[1]['impound'] = false
+					if vehicle[1].detido == 1 then
+						vehicle[1]['impound'] = true
+					end
+
+					vehicle[1]['bolo'] = GetBoloStatus(vehicle[1]['plate'])
+					vehicle[1]['information'] = ""
+
+					vehicle[1]['name'] = "Unknown Person"
+
+					vehicle[1]['name'] = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+
+					vehicle[1]['color1'] = 1
+
+					vehicle[1]['dbid'] = 0
+
+					local info = GetVehicleInformation(vehicle[1]['plate'])
+					if info then
+						vehicle[1]['information'] = info['information']
+						vehicle[1]['dbid'] = info['id']
+						vehicle[1]['image'] = info['image']
+						vehicle[1]['code'] = info['code5']
+						vehicle[1]['stolen'] = info['stolen']
+					end
+
+					if vehicle[1]['image'] == nil then vehicle[1]['image'] = "img/not-found.webp" end -- Image
+				end
+
+				TriggerClientEvent('mdt:client:getVehicleData', src, vehicle)
+			end
+		end
+	end
+end)

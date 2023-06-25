@@ -106,3 +106,13 @@ RegisterNetEvent('nc-mdt:client:TakeOutImpound', function(data)
         QBCore.Functions.Notify("You are too far away from the impound location!")
     end
 end)
+
+RegisterNetEvent('police:client:TakeOutImpound', function(data)
+    local pos = GetEntityCoords(PlayerPedId())
+    local takeDist = Config.Locations['impound'][data.currentSelection]
+    takeDist = vector3(takeDist.x, takeDist.y,  takeDist.z)
+    if #(pos - takeDist) <= 1.5 then
+        local vehicle = data.vehicle
+        TakeOutImpound(vehicle)
+    end
+end)

@@ -502,3 +502,72 @@ end)
 RegisterNetEvent('mdt:client:getAllIncidents', function(sentData)
     SendNUIMessage({ type = "incidents", data = sentData })
 end)
+
+------------------------------------------
+--               BOLO PAGE              --
+------------------------------------------
+
+RegisterNUICallback("searchBolos", function(data, cb)
+    local searchVal = data.searchVal
+    TriggerServerEvent('mdt:server:searchBolos', searchVal)
+    cb(true)
+end)
+
+RegisterNUICallback("getAllBolos", function(data, cb)
+    TriggerServerEvent('mdt:server:getAllBolos')
+    cb(true)
+end)
+
+RegisterNUICallback("getBoloData", function(data, cb)
+    local id = data.id
+    TriggerServerEvent('mdt:server:getBoloData', id)
+    cb(true)
+end)
+
+RegisterNUICallback("newBolo", function(data, cb)
+    local existing = data.existing
+    local id = data.id
+    local title = data.title
+    local plate = data.plate
+    local owner = data.owner
+    local individual = data.individual
+    local detail = data.detail
+    local tags = data.tags
+    local gallery = data.gallery
+    local officers = data.officers
+    local time = data.time
+    TriggerServerEvent('mdt:server:newBolo', existing, id, title, plate, owner, individual, detail, tags, gallery, officers, time)
+    cb(true)
+end)
+
+RegisterNUICallback("deleteBolo", function(data, cb)
+    local id = data.id
+    TriggerServerEvent('mdt:server:deleteBolo', id)
+    cb(true)
+end)
+
+RegisterNUICallback("deleteICU", function(data, cb)
+    local id = data.id
+    TriggerServerEvent('mdt:server:deleteICU', id)
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getBolos', function(sentData)
+    SendNUIMessage({ type = "bolos", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:getAllIncidents', function(sentData)
+    SendNUIMessage({ type = "incidents", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:getAllBolos', function(sentData)
+    SendNUIMessage({ type = "bolos", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:getBoloData', function(sentData)
+    SendNUIMessage({ type = "boloData", data = sentData })
+end)
+
+RegisterNetEvent('mdt:client:boloComplete', function(sentData)
+    SendNUIMessage({ type = "boloComplete", data = sentData })
+end)

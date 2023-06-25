@@ -701,6 +701,7 @@ function QBCoreFunctionsDeleteVehicle(vehicle)
 end
 
 RegisterNetEvent('police:client:ImpoundVehicle', function(fullImpound, price)
+    print(fullImpound, price)
     local vehicle = QBCoreFunctionsGetClosestVehicle()
     local bodyDamage = math.ceil(GetVehicleBodyHealth(vehicle))
     local engineDamage = math.ceil(GetVehicleEngineHealth(vehicle))
@@ -718,7 +719,45 @@ RegisterNetEvent('police:client:ImpoundVehicle', function(fullImpound, price)
     end
 end)
 
+RegisterNUICallback("removeImpound", function(data, cb)
+    local ped = PlayerPedId()
+    local playerPos = GetEntityCoords(ped)
+    for k, v in pairs(Config.ImpoundLocations) do
+        if (#(playerPos - vector3(v.x, v.y, v.z)) < 20.0) then
+            TriggerServerEvent('mdt:server:removeImpound', data['plate'], k)
+            break
+        end
+    end
+	cb('ok')
+end)
+
+RegisterNUICallback("statusImpound", function(data, cb)
+	TriggerServerEvent('mdt:server:statusImpound', data['plate'])
+	cb('ok')
+end)
+
+RegisterNetEvent('mdt:client:statusImpound', function(data, plate)
+    SendNUIMessage({ type = "statusImpound", data = data, plate = plate })
+end)
+
 RegisterNUICallback("getAllLogs", function(data, cb)
     TriggerServerEvent('mdt:server:getAllLogs')
     cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getAllLogs', function(sentData)
+    SendNUIMessage({ type = "getAllLogs", data = sentData })
+end)
+
+RegisterNUICallback("getPenalCode", function(data, cb)
+    TriggerServerEvent('mdt:server:getPenalCode')
+    cb(true)
+end)
+
+-----------------------------------------------------------------------------
+-- Open Camera
+-----------------------------------------------------------------------------
+RegisterNUICallback('openCamera', function(data)
+    local camId = tonumber(data.cam)
+    TriggerEvent('police:client:ActiveCamera', camId)
 end)

@@ -608,3 +608,112 @@ RegisterNetEvent('mdt:client:getVehicleData', function(sentData)
         SendNUIMessage({ type = "getVehicleData", data = vehicle })
     end
 end)
+
+RegisterNUICallback("saveVehicleInfo", function(data, cb)
+    local dbid = data.dbid
+    local plate = data.plate
+    local imageurl = data.imageurl
+    local notes = data.notes
+    local stolen = data.stolen
+    local code5 = data.code5
+    local impound = data.impound
+    local JobType = GetJobType("police")
+    if JobType == 'police' and impound.impoundChanged == true then
+        if impound.impoundActive then
+            local found = 0
+            local plateVeh = string.upper(string.gsub(data['plate'], "^%s*(.-)%s*$", "%1"))
+            local vehicles = GetGamePool('CVehicle')
+
+            for k,v in pairs(vehicles) do
+                local plt = string.upper(string.gsub(GetVehicleNumberPlateText(v), "^%s*(.-)%s*$", "%1"))
+                if plt == plateVeh then
+                    local dist = #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(v))
+                    if dist < 5.0 then
+                        found = VehToNet(v)
+                        SendNUIMessage({ type = "greenImpound" })
+                        TriggerServerEvent('mdt:server:saveVehicleInfo', dbid, plateVeh, imageurl, notes, stolen, code5, impound)
+                    end
+                    break
+                end
+            end
+
+            if found == 0 then
+                print(found)
+                TriggerEvent("Notify", "sucesso", "Nenhum veiculo encontrado")
+                SendNUIMessage({ type = "redImpound" })
+            end
+        else
+            local ped = PlayerPedId()
+            local playerPos = GetEntityCoords(ped)
+            for k, v in pairs(Config.ImpoundLocations) do
+                if (#(playerPos - vector3(v.x, v.y, v.z)) < 20.0) then
+                    impound.CurrentSelection = k
+                    TriggerServerEvent('mdt:server:saveVehicleInfo', dbid, plateVeh, imageurl, notes, stolen, code5, impound)
+                    break
+                end
+            end
+        end
+    else
+        TriggerServerEvent('mdt:server:saveVehicleInfo', dbid, plate, imageurl, notes, stolen, code5, impound)
+    end
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:updateVehicleDbId', function(sentData)
+    SendNUIMessage({ type = "updateVehicleDbId", data = tonumber(sentData) })
+end)
+
+function QBCoreFunctionsGetClosestVehicle(coords)
+    local ped = PlayerPedId()
+    local vehicles = GetGamePool('CVehicle')
+    local closestDistance = -1
+    local closestVehicle = -1
+    if coords then
+        coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
+    else
+        coords = GetEntityCoords(ped)
+    end
+    for i = 1, #vehicles, 1 do
+        local vehicleCoords = GetEntityCoords(vehicles[i])
+        local distance = #(vehicleCoords - coords)
+
+        if closestDistance == -1 or closestDistance > distance then
+            closestVehicle = vehicles[i]
+            closestDistance = distance
+        end
+    end
+    return closestVehicle, closestDistance
+end
+
+function QBCoreFunctionsGetPlate(vehicle)
+    if vehicle == 0 then return end
+    return QBSharedTrim(GetVehicleNumberPlateText(vehicle))
+end
+
+function QBSharedTrim(value)
+	if not value then return nil end
+    return (string.gsub(value, '^%s*(.-)%s*$', '%1'))
+end
+
+function QBCoreFunctionsDeleteVehicle(vehicle)
+    SetEntityAsMissionEntity(vehicle, true, true)
+    DeleteVehicle(vehicle)
+end
+
+RegisterNetEvent('police:client:ImpoundVehicle', function(fullImpound, price)
+    local vehicle = QBCoreFunctionsGetClosestVehicle()
+    local bodyDamage = math.ceil(GetVehicleBodyHealth(vehicle))
+    local engineDamage = math.ceil(GetVehicleEngineHealth(vehicle))
+    local totalFuel = 100
+    if vehicle ~= 0 and vehicle then
+        local ped = PlayerPedId()
+        local pos = GetEntityCoords(ped)
+        local vehpos = GetEntityCoords(vehicle)
+        if #(pos - vehpos) < 5.0 and not IsPedInAnyVehicle(ped) then
+            local plate = QBCoreFunctionsGetPlate(vehicle)
+            TriggerServerEvent("police:server:Impound", plate, fullImpound, price, bodyDamage, engineDamage, totalFuel)			
+            QBCoreFunctionsDeleteVehicle(vehicle)
+            TriggerServerEvent('Prime-Parking:server:removeOutsideVehicles', plate)
+        end
+    end
+end)

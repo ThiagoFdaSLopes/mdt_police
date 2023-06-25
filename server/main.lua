@@ -1000,3 +1000,56 @@ RegisterNetEvent('mdt:server:deleteICU', function(id)
 		end
 	end
 end)
+
+-----------------------------------------------------------------------------------------------------------------------
+-- DMV PAGE
+-----------------------------------------------------------------------------------------------------------------------
+function cRP.SearchVehicles(sentData)
+	if not sentData then return {} end
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		local JobType = GetJobType("police")
+		if JobType == 'police' or JobType == 'doj' then
+			local vehicles = MySQL.query.await("SELECT pv.id, pv.user_id, pv.plate, pv.vehicle, pv.desmanchado, pv.engine, pv.body, pv.fuel, pv.detido, p.name, p.name2 FROM `vrp_vehicles` pv LEFT JOIN vrp_users p ON pv.user_id = p.id WHERE LOWER(`plate`) LIKE :query OR LOWER(`vehicle`) LIKE :query LIMIT 25", {
+				query = string.lower('%'..sentData..'%')
+			})
+
+			if not next(vehicles) then return {} end
+
+			for _, value in ipairs(vehicles) do
+				if value.desmanchado == 0 then
+					value.state = "Out"
+				elseif value.desmanchado == 1 then
+					value.state = "Garaged"
+				elseif value.detido == 1 then
+					value.state = "Impounded"
+				end
+
+				value.bolo = false
+				local boloResult = GetBoloStatus(value.plate)
+				if boloResult then
+					value.bolo = true
+				end
+
+				value.code = false
+				value.stolen = false
+				value.image = "img/not-found.webp"
+				local info = GetVehicleInformation(value.plate)
+				if info then
+					value.code = info['code5']
+					value.stolen = info['stolen']
+					value.image = info['image']
+				end
+
+				value.owner = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+			end
+			-- idk if this works or I have to call cb first then return :shrug:
+			return vehicles
+		end
+
+		return {}
+	end
+
+end

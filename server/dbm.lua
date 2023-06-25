@@ -120,7 +120,7 @@ end
 
 function GetVehicleInformation(plate, cb)
     local result = MySQL.query.await('SELECT id, information FROM `mdt_vehicleinfo` WHERE plate=:plate', { plate = plate})
-	cb(result)
+	return result
 end
 
 function GetPlayerLicenses(identifier)

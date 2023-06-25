@@ -571,3 +571,21 @@ end)
 RegisterNetEvent('mdt:client:boloComplete', function(sentData)
     SendNUIMessage({ type = "boloComplete", data = sentData })
 end)
+
+-----------------------------------------------------------------------------------------------------------------------
+-- DMV PAGE
+-----------------------------------------------------------------------------------------------------------------------
+RegisterNUICallback("searchVehicles", function(data, cb)
+
+    local result = vSERVER.SearchVehicles(data.name)
+
+    for i=1, #result do
+        local vehicle = result[i]
+        local mods = json.decode(result[i].body)
+        result[i]['plate'] = string.upper(result[i]['plate'])
+        result[i]['color'] = Config.ColorInformation[i]
+        result[i]['colorName'] = Config.ColorNames[i]
+        result[i]['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
+    end
+    cb(result)
+end)

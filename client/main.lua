@@ -717,3 +717,8 @@ RegisterNetEvent('police:client:ImpoundVehicle', function(fullImpound, price)
         end
     end
 end)
+
+RegisterNUICallback("getAllLogs", function(data, cb)
+    TriggerServerEvent('mdt:server:getAllLogs')
+    cb(true)
+end)

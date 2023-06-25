@@ -492,9 +492,6 @@ end)
 -- PAGE PROFILE
 ----------------------------------------------------------------------------------------
 function cRP.getProfile(sentId)
-	print(sentId)
-	-- if not sentId then return cb({}) end
-
 	local src = source
 	local user_id = vRP.getUserId(src)
 	local PlayerData = vRP.getInformation(user_id)
@@ -516,7 +513,7 @@ function cRP.getProfile(sentId)
 		grade = "lspd",
 		pp = ProfPic(PlayerData[1].sex),
 		licences = licencesdata,
-		dob = (2023 - PlayerData[1].age),
+		dob = ((2023 - PlayerData[1].age) - 1),
 		mdtinfo = '',
 		fingerprint = '',
 		tags = {},
@@ -527,7 +524,7 @@ function cRP.getProfile(sentId)
 	}
 
 	if Config.PoliceJobs[JobName] then
-		local convictions = GetConvictions({person.cid})
+		local convictions = GetConvictions(person.cid)
 		person.convictions2 = {}
 		local convCount = 1
 		if next(convictions) then
@@ -610,10 +607,9 @@ function cRP.SearchProfileMdt(sentData)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index
 			end
-			print(#people)
 
 			if #people ~= 0 then
-				local convictions = GetConvictions(citizenIds)
+				local convictions = GetConvictions(PlayerData[1].registration)
 
 				if next(convictions) then
 					for _, conv in pairs(convictions) do
@@ -740,11 +736,129 @@ RegisterNetEvent('mdt:server:incidentSearchPerson', function(query)
 				})
 				local data = {}
 				for i=1, #result do
-					local charinfo = json.decode(result[i])
+					local charinfo = result[1]
 					data[i] = {id = result[i].registration, firstname = charinfo.name, lastname = charinfo.name2, profilepic = ProfPic(charinfo.sex, result[i].pfp)}
 				end
 				TriggerClientEvent('mdt:client:incidentSearchPerson', src, data)
             end
         end
     end
+end)
+
+RegisterNetEvent('mdt:server:saveIncident', function(id, title, information, tags, officers, civilians, evidence, associated, time)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		if GetJobType("police") == 'police' then
+			if id == 0 then
+				local fullname = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+				MySQL.insert('INSERT INTO `mdt_incidents` (`author`, `title`, `details`, `tags`, `officersinvolved`, `civsinvolved`, `evidence`, `time`, `jobtype`) VALUES (:author, :title, :details, :tags, :officersinvolved, :civsinvolved, :evidence, :time, :jobtype)',
+				{
+					author = fullname,
+					title = title,
+					details = information,
+					tags = json.encode(tags),
+					officersinvolved = json.encode(officers),
+					civsinvolved = json.encode(civilians),
+					evidence = json.encode(evidence),
+					time = time,
+					jobtype = 'police',
+				}, function(infoResult)
+					if infoResult then
+						for i=1, #associated do
+							MySQL.insert('INSERT INTO `mdt_convictions` (`cid`, `linkedincident`, `warrant`, `guilty`, `processed`, `associated`, `charges`, `fine`, `sentence`, `recfine`, `recsentence`, `time`) VALUES (:cid, :linkedincident, :warrant, :guilty, :processed, :associated, :charges, :fine, :sentence, :recfine, :recsentence, :time)', {
+								cid = associated[i]['Cid'],
+								linkedincident = infoResult,
+								warrant = associated[i]['Warrant'],
+								guilty = associated[i]['Guilty'],
+								processed = associated[i]['Processed'],
+								associated = associated[i]['Isassociated'],
+								charges = json.encode(associated[i]['Charges']),
+								fine = tonumber(associated[i]['Fine']),
+								sentence = tonumber(associated[i]['Sentence']),
+								recfine = tonumber(associated[i]['recfine']),
+								recsentence = tonumber(associated[i]['recsentence']),
+								time = time
+							})
+						end
+						TriggerClientEvent('mdt:client:updateIncidentDbId', src, infoResult)
+						--TriggerEvent('mdt:server:AddLog', "A vehicle with the plate ("..plate..") was added to the vehicle information database by "..player['fullname'])
+					end
+				end)
+			elseif id > 0 then
+				MySQL.update("UPDATE mdt_incidents SET title=:title, details=:details, civsinvolved=:civsinvolved, tags=:tags, officersinvolved=:officersinvolved, evidence=:evidence WHERE id=:id", {
+					title = title,
+					details = information,
+					tags = json.encode(tags),
+					officersinvolved = json.encode(officers),
+					civsinvolved = json.encode(civilians),
+					evidence = json.encode(evidence),
+					id = id
+				})
+				for i=1, #associated do
+					TriggerEvent('mdt:server:handleExistingConvictions', associated[i], id, time)
+				end
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:handleExistingConvictions', function(data, incidentid, time)
+	MySQL.query('SELECT * FROM mdt_convictions WHERE cid=:cid AND linkedincident=:linkedincident', {
+		cid = data['Cid'],
+		linkedincident = incidentid
+	}, function(convictionRes)
+		if convictionRes and convictionRes[1] and convictionRes[1]['id'] then
+			MySQL.update('UPDATE mdt_convictions SET cid=:cid, linkedincident=:linkedincident, warrant=:warrant, guilty=:guilty, processed=:processed, associated=:associated, charges=:charges, fine=:fine, sentence=:sentence, recfine=:recfine, recsentence=:recsentence WHERE cid=:cid AND linkedincident=:linkedincident', {
+				cid = data['Cid'],
+				linkedincident = incidentid,
+				warrant = data['Warrant'],
+				guilty = data['Guilty'],
+				processed = data['Processed'],
+				associated = data['Isassociated'],
+				charges = json.encode(data['Charges']),
+				fine = tonumber(data['Fine']),
+				sentence = tonumber(data['Sentence']),
+				recfine = tonumber(data['recfine']),
+				recsentence = tonumber(data['recsentence']),
+			})
+		else
+			MySQL.insert('INSERT INTO `mdt_convictions` (`cid`, `linkedincident`, `warrant`, `guilty`, `processed`, `associated`, `charges`, `fine`, `sentence`, `recfine`, `recsentence`, `time`) VALUES (:cid, :linkedincident, :warrant, :guilty, :processed, :associated, :charges, :fine, :sentence, :recfine, :recsentence, :time)', {
+				cid = data['Cid'],
+				linkedincident = incidentid,
+				warrant = data['Warrant'],
+				guilty = data['Guilty'],
+				processed = data['Processed'],
+				associated = data['Isassociated'],
+				charges = json.encode(data['Charges']),
+				fine = tonumber(data['Fine']),
+				sentence = tonumber(data['Sentence']),
+				recfine = tonumber(data['recfine']),
+				recsentence = tonumber(data['recsentence']),
+				time = time
+			})
+		end
+	end)
+end)
+
+RegisterNetEvent('mdt:server:removeIncidentCriminal', function(cid, incident)
+	MySQL.update('DELETE FROM mdt_convictions WHERE cid=:cid AND linkedincident=:linkedincident', {
+		cid = cid,
+		linkedincident = incident
+	})
+end)
+
+RegisterNetEvent('mdt:server:getAllIncidents', function()
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		local JobType = GetJobType("police")
+		if JobType == 'police' or JobType == 'doj' then
+			local matches = MySQL.query.await("SELECT * FROM `mdt_incidents` ORDER BY `id` DESC LIMIT 30", {})
+
+			TriggerClientEvent('mdt:client:getAllIncidents', src, matches)
+		end
+	end
 end)

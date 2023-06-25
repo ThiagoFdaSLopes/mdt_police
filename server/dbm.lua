@@ -5,6 +5,7 @@ local Tunnel = module("vrp", "lib/Tunnel")
 local Proxy = module("vrp", "lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 vRPC = Tunnel.getInterface("vRP")
+vCLIENT = Tunnel.getInterface("player")
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 -- Get CitizenIDs from Player License
@@ -105,6 +106,37 @@ end
 --[[ function GetImpoundStatus(vehicleid, cb)
 	cb( #(exports.oxmysql:executeSync('SELECT id FROM `impound` WHERE `vehicleid`=:vehicleid', {['vehicleid'] = vehicleid })) > 0 )
 end ]]
+
+-- function DeterVeiculo()
+--     print("chamou")
+-- 	local src = source
+-- 	local user_id = vRP.getUserId(src)
+-- 	if user_id then
+-- 		if vRP.hasPermission(user_id,"Police") then
+-- 			if vRPclient.getHealth(source) > 101 and not vCLIENT.getHandcuff(source) then
+-- 				local vehicle,vehNet,vehPlate,vehName = vRPclient.vehList(source,7)
+-- 				if vehicle then
+-- 					local plateUser = vRP.getVehiclePlate(vehPlate)
+-- 					local inVehicle = vRP.query("vRP/get_vehicles",{ user_id = parseInt(plateUser), vehicle = vehName })
+-- 					if inVehicle[1] then
+-- 						if inVehicle[1].arrest <= 0 then
+-- 							vRP.execute("vRP/set_arrest",{ user_id = parseInt(plateUser), vehicle = vehName, arrest = 1, time = parseInt(os.time()) })
+-- 							TriggerClientEvent("Notify",source,"aviso","Veículo <b>apreendido</b>.",3000)
+-- 							TriggerClientEvent("Notify",plateUser,"aviso","Veículo <b>"..vRP.vehicleName(vehName).."</b> foi conduzido para o <b>DMV</b>.",7000)
+-- 						else
+-- 							TriggerClientEvent("Notify",source,"amarelo","O veículo está no galpão da polícia.",5000)
+-- 						end
+-- 					end
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- end
+
+function IsVehicleOwned(plate)
+    local result = MySQL.scalar.await('SELECT plate FROM vrp_vehicles WHERE plate = ?', {plate})
+    return result
+end
 
 function GetBoloStatus(plate)
 	local result = MySQL.scalar.await('SELECT id FROM `mdt_bolos` WHERE LOWER(`plate`)=:plate', { plate = string.lower(plate)})

@@ -589,3 +589,22 @@ RegisterNUICallback("searchVehicles", function(data, cb)
     end
     cb(result)
 end)
+
+RegisterNUICallback("getVehicleData", function(data, cb)
+    local plate = data.plate
+    TriggerServerEvent('mdt:server:getVehicleData', plate)
+    cb(true)
+end)
+
+RegisterNetEvent('mdt:client:getVehicleData', function(sentData)
+    if sentData and sentData[1] then
+        local vehicle = sentData[1]
+        local vehData = json.decode(vehicle['vehicle'])
+        vehicle['color'] = Config.ColorInformation[vehicle['color1']]
+        vehicle['colorName'] = Config.ColorNames[vehicle['color1']]
+        vehicle['model'] = GetLabelText(GetDisplayNameFromVehicleModel(vehicle['vehicle']))
+        vehicle['class'] = Config.ClassList[GetVehicleClassFromName(vehicle['vehicle'])]
+        vehicle['vehicle'] = nil
+        SendNUIMessage({ type = "getVehicleData", data = vehicle })
+    end
+end)

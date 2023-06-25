@@ -1193,7 +1193,113 @@ RegisterNetEvent('police:server:Impound', function(plate, fullImpound, price, bo
             MySQL.query.await(
                 'UPDATE vrp_vehicles SET detido = ?, body = ?, engine = ?, fuel = ? WHERE plate = ?',
                 {1, body, engine, fuel, plate})
-				TriggerClientEvent('Notify', src, "Vehicle seized!")
+			TriggerClientEvent('Notify', src, "Vehicle seized!")
         end
     end
+end)
+
+local function isRequestVehicle(vehId)
+	local found = false
+	for i=1, #impound do
+		if impound[i]['vehicle'] == vehId then
+			found = true
+			impound[i] = nil
+			break
+		end
+	end
+	return found
+end
+
+exports('isRequestVehicle', isRequestVehicle)
+
+RegisterNetEvent('mdt:server:getAllLogs', function()
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		if Config.LogPerms["police"] then
+			if Config.LogPerms["police"][4] then
+
+				local JobType = GetJobType("police")
+				local infoResult = MySQL.query.await('SELECT * FROM mdt_logs WHERE `jobtype` = :jobtype ORDER BY `id` DESC LIMIT 250', {jobtype = JobType})
+
+				TriggerLatentClientEvent('mdt:client:getAllLogs', src, 30000, infoResult)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:getPenalCode', function()
+	local src = source
+	TriggerClientEvent('mdt:client:getPenalCode', src, Config.PenalCodeTitles, Config.PenalCode)
+end)
+
+local function IsCidFelon(sentCid, cb)
+	if sentCid then
+		local convictions = MySQL.query.await('SELECT charges FROM mdt_convictions WHERE cid=:cid', { cid = sentCid })
+		local Charges = {}
+		for i=1, #convictions do
+			local currCharges = json.decode(convictions[i]['charges'])
+			for x=1, #currCharges do
+				Charges[#Charges+1] = currCharges[x]
+			end
+		end
+		local PenalCode = Config.PenalCode
+		for i=1, #Charges do
+			for p=1, #PenalCode do
+				for x=1, #PenalCode[p] do
+					if PenalCode[p][x]['title'] == Charges[i] then
+						if PenalCode[p][x]['class'] == 'Felony' then
+							cb(true)
+							return
+						end
+						break
+					end
+				end
+			end
+		end
+		cb(false)
+	end
+end
+
+exports('IsCidFelon', IsCidFelon) -- exports['erp_mdt']:IsCidFelon()
+
+RegisterCommand("isfelon", function(source, args, rawCommand)
+	IsCidFelon(1998, function(res)
+	end)
+end, false)
+
+RegisterNetEvent('mdt:server:removeImpound', function(plate, currentSelection)
+	print("Removing impound", plate, currentSelection)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		if GetJobType("police") == 'police' then
+			local result = MySQL.single.await("SELECT id, vehicle FROM `vrp_vehicles` WHERE plate=:plate LIMIT 1", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1")})
+			if result and result[1] then
+				local data = result[1]
+				MySQL.update("DELETE FROM `mdt_impound` WHERE vehicleid=:vehicleid", { vehicleid = data['id'] })
+				TriggerClientEvent('police:client:TakeOutImpound', src, currentSelection)
+			end
+		end
+	end
+end)
+
+RegisterNetEvent('mdt:server:statusImpound', function(plate)
+	local src = source
+	local user_id = vRP.getUserId(src)
+	local PlayerData = vRP.getInformation(user_id)
+	if PlayerData[1] then
+		if GetJobType("police") == 'police' then
+			local vehicle = MySQL.query.await("SELECT id, plate FROM `vrp_vehicles` WHERE plate=:plate LIMIT 1", { plate = string.gsub(plate, "^%s*(.-)%s*$", "%1")})
+			if vehicle and vehicle[1] then
+				local data = vehicle[1]
+				local impoundinfo = MySQL.query.await("SELECT * FROM `mdt_impound` WHERE vehicleid=:vehicleid LIMIT 1", { vehicleid = data['id'] })
+				if impoundinfo and impoundinfo[1] then
+					TriggerClientEvent('mdt:client:statusImpound', src, impoundinfo[1], plate)
+				end
+			end
+		end
+	end
 end)

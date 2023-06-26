@@ -491,16 +491,14 @@ end)
 -- PAGE PROFILE
 ----------------------------------------------------------------------------------------
 function cRP.getProfile(sentId)
-	local src = source
-	local user_id = vRP.getUserId(src)
-	local PlayerData = vRP.getInformation(user_id)
+	local PlayerData = MySQL.query.await("SELECT * FROM vrp_users WHERE registration = @registration", { registration = sentId })
 	local JobType = "police"
 	local JobName = "police"
 
-	local licencesdata = PlayerData[1].metadata or {
-        ['driver'] = false,
-        ['business'] = false,
-        ['weapon'] = false,
+	local licencesdata = json.decode(PlayerData[1].metadata) or {
+		['driver'] = false,
+		['business'] = false,
+		['weapon'] = false,
 		['pilot'] = false
 	}
 
@@ -545,7 +543,7 @@ function cRP.getProfile(sentId)
 				hash[v] = true
 			end
 		end
-		local vehicles = GetPlayerVehicles(user_id)
+		local vehicles = GetPlayerVehicles(PlayerData[1].id)
 
 		if vehicles then
 			person.vehicles = vehicles
@@ -594,14 +592,22 @@ function cRP.SearchProfileMdt(sentData)
 	if PlayerData[1] then
 		local JobType = "police"
 		if JobType ~= nil then
-			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE @query OR LOWER(`name`) LIKE @query OR LOWER(`registration`) LIKE @query OR LOWER(`fingerprint`) LIKE @query AND jobtype = @jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex, p.metadata FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE @query OR LOWER(`name`) LIKE @query OR LOWER(`registration`) LIKE @query OR LOWER(`fingerprint`) LIKE @query AND jobtype = @jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
 			local citizenIds = {}
 			local citizenIdIndexMap = {}
 
 			for index, data in pairs(people) do
+				print(people[index].name)
+				local meta = json.decode(data.metadata)
 				people[index]['warrant'] = false
 				people[index]['convictions'] = 0
-				people[index]['licences'] = GetPlayerLicenses(PlayerData[1].registration, user_id)
+				people[index]['licences'] = meta or {
+					["driver"] = false,
+					["business"] = false,
+					["weapon"] = false,
+					["pilot"] = false
+				}
+				
 				people[index]['pp'] = ProfPic(data.sex)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index
@@ -621,6 +627,8 @@ function cRP.SearchProfileMdt(sentData)
 			end
 			return people
 		end
+	else
+		return {}
 	end
 end
 
@@ -1010,7 +1018,7 @@ function cRP.SearchVehicles(sentData)
 	if PlayerData[1] then
 		local JobType = GetJobType("police")
 		if JobType == 'police' or JobType == 'doj' then
-			local vehicles = MySQL.query.await("SELECT pv.id, pv.user_id, pv.plate, pv.vehicle, pv.desmanchado, pv.engine, pv.body, pv.fuel, pv.detido, p.name, p.name2 FROM `vrp_vehicles` pv LEFT JOIN vrp_users p ON pv.user_id = p.id WHERE LOWER(`plate`) LIKE :query OR LOWER(`vehicle`) LIKE :query LIMIT 25", {
+			local vehicles = MySQL.query.await("SELECT pv.id, pv.user_id, pv.plate, pv.vehicle, pv.desmanchado, pv.engine, pv.body, pv.fuel, pv.detido, p.name, p.name2, p.id as playerId FROM `vrp_vehicles` pv LEFT JOIN vrp_users p ON pv.user_id = p.id WHERE LOWER(`plate`) LIKE :query OR LOWER(`vehicle`) LIKE :query LIMIT 25", {
 				query = string.lower('%'..sentData..'%')
 			})
 
@@ -1035,13 +1043,13 @@ function cRP.SearchVehicles(sentData)
 				value.stolen = false
 				value.image = "img/not-found.webp"
 				local info = GetVehicleInformation(value.plate)
-				if info then
-					value.code = info['code5']
-					value.stolen = info['stolen']
-					value.image = info['image']
+				if info[1] then
+					value.code = info[1].code5
+					value.stolen = info[1].stolen
+					value.image = info[1].image
 				end
 
-				value.owner = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+				value.owner = value.name.. ' ' ..value.name2
 			end
 			-- idk if this works or I have to call cb first then return :shrug:
 			return vehicles
@@ -1065,24 +1073,24 @@ RegisterNetEvent('mdt:server:getVehicleData', function(plate)
 						vehicle[1]['impound'] = true
 					end
 
-					vehicle[1]['bolo'] = GetBoloStatus(vehicle[1]['plate'])
+					vehicle[1]['bolo'] = GetBoloStatus(vehicle[1].plate)
 					vehicle[1]['information'] = ""
 
-					vehicle[1]['name'] = "Unknown Person"
+					vehicle[1]['name'] = vehicle[1].name
 
-					vehicle[1]['name'] = PlayerData[1].name.. ' ' ..PlayerData[1].name2
+					vehicle[1]['name'] = vehicle[1].name.. ' ' ..vehicle[1].name2
 
 					vehicle[1]['color1'] = 1
 
 					vehicle[1]['dbid'] = 0
 
-					local info = GetVehicleInformation(vehicle[1]['plate'])
-					if info then
-						vehicle[1]['information'] = info['information']
-						vehicle[1]['dbid'] = info['id']
-						vehicle[1]['image'] = info['image']
-						vehicle[1]['code'] = info['code5']
-						vehicle[1]['stolen'] = info['stolen']
+					local info = GetVehicleInformation(vehicle[1].plate)
+					if info[1] then
+						vehicle[1]['information'] = info[1].information
+						vehicle[1]['dbid'] = info[1].id
+						vehicle[1]['image'] = info[1].image
+						vehicle[1]['code'] = info[1].code
+						vehicle[1]['stolen'] = info[1].stolen
 					end
 
 					if vehicle[1]['image'] == nil then vehicle[1]['image'] = "img/not-found.webp" end -- Image

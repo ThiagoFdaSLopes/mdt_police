@@ -77,6 +77,7 @@ function CreateUser(cid, tableName)
 end
 
 function GetPlayerVehicles(cid, cb)
+    print(cid)
 	return MySQL.query.await('SELECT id, plate, vehicle FROM vrp_vehicles WHERE user_id=:cid', { cid = cid })
 end
 
@@ -151,28 +152,26 @@ function GetOwnerName(cid)
 end
 
 function GetVehicleInformation(plate, cb)
-    local result = MySQL.query.await('SELECT id, information FROM `mdt_vehicleinfo` WHERE plate=:plate', { plate = plate})
+    local result = MySQL.query.await('SELECT * FROM `mdt_vehicleinfo` WHERE plate=:plate', { plate = plate})
 	return result
 end
 
 function GetPlayerLicenses(identifier, playerId)
     local Player = vRP.getInformation(playerId)
-    if Player[1] ~= nil then
-        return Player[1].metadata
-    else
-        local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
-        if result ~= nil then
-            local metadata = json.decode(result)
-            if metadata[1]["metadata"] ~= nil and metadata[1]["metadata"] then
-                return metadata[1]["metadata"]
-            else
-                return {
-                    ['driver'] = false,
-                    ['business'] = false,
-                    ['weapon'] = false,
-                    ['pilot'] = false
-                }
-            end
+    local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
+    if result[1] then
+        local metadata = result
+        print(metadata)
+        if metadata[1]["metadata"] ~= nil and metadata[1]["metadata"] then
+            -- return json.decode(metadata[1]["metadata"])
+            print(metadata[1]["metadata"])
+        else
+            return {
+                ['driver'] = false,
+                ['business'] = false,
+                ['weapon'] = false,
+                ['pilot'] = false
+            }
         end
     end
 end
@@ -182,7 +181,7 @@ function ManageLicense(id, identifier, type, status)
     local licenseStatus = nil
     if status == "give" then licenseStatus = true elseif status == "revoke" then licenseStatus = false end
     if Player[1] ~= nil then
-        local licences = json.decode(Player[1].metadata)
+        local licences = Player[1].metadata
         local newLicenses = {}
         for k, v in pairs(licences) do
             local newStatus = v

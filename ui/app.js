@@ -4990,6 +4990,7 @@ function titleCase(str) {
 }
 
 function searchProfilesResults(result) {
+
   canSearchForProfiles = true;
   $(".profile-items").empty();
 
@@ -5015,7 +5016,7 @@ function searchProfilesResults(result) {
 
   result.forEach((value) => {
     // let charinfo = value.charinfo;
-    let metadata = value.licences;
+    let metadata = value.metadata;
 
     if (typeof value.charinfo == "string") {
       charinfo = JSON.parse(charinfo);

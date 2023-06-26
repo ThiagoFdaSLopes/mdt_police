@@ -208,8 +208,9 @@ end)
 
 RegisterNetEvent('mdt:server:setWaypoint:unit', function(cid)
 	local src = source
-	local user_id = vRP.getUserId(src)
-	local PlayerCoords = GetEntityCoords(GetPlayerPed(user_id))
+	local user_id = MySQL.query.await("SELECT id FROM vrp_users WHERE registration = @registration", { registration = cid })
+	local nsourcep = vRP.getUserSource(user_id[1].id)
+	local PlayerCoords = GetEntityCoords(GetPlayerPed(nsourcep))
 	TriggerClientEvent("mdt:client:setWaypoint:unit", src, PlayerCoords)
 end)
 

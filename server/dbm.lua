@@ -163,8 +163,8 @@ function GetPlayerLicenses(identifier, playerId)
         local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
         if result ~= nil then
             local metadata = json.decode(result)
-            if metadata["metadata"] ~= nil and metadata["metadata"] then
-                return metadata["metadata"]
+            if metadata[1]["metadata"] ~= nil and metadata[1]["metadata"] then
+                return metadata[1]["metadata"]
             else
                 return {
                     ['driver'] = false,

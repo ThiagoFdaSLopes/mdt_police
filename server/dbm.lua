@@ -204,8 +204,9 @@ function ManageLicenses(id, identifier, incomingLicenses)
         MySQL.scalar.await('UPDATE `vrp_users` SET `metadata` = @metadata WHERE registration = @identifier', {['@metadata'] = json.encode(incomingLicenses), ['@identifier'] = identifier})
         Player[1].metadata = incomingLicenses
     else
-        local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
+        local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @registration', {['@registration'] = identifier})
         result = json.decode(result)
+        print(result.metadata)
 
         result.metadata = result.metadata or {
             ['driver'] = true,

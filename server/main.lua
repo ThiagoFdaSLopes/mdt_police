@@ -594,14 +594,14 @@ function cRP.SearchProfileMdt(sentData)
 	if PlayerData[1] then
 		local JobType = "police"
 		if JobType ~= nil then
-			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE @query OR LOWER(`name`) LIKE @query OR LOWER(`registration`) LIKE @query OR LOWER(`fingerprint`) LIKE @query AND jobtype = @jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
+			local people = MySQL.query.await("SELECT p.registration, p.name, p.name2, p.sex, p.metadata FROM vrp_users p LEFT JOIN mdt_data md on p.registration = md.cid WHERE LOWER(CONCAT(JSON_VALUE(p.name, '$.name'), ' ', JSON_VALUE(p.name2, '$.name2'))) LIKE @query OR LOWER(`name`) LIKE @query OR LOWER(`registration`) LIKE @query OR LOWER(`fingerprint`) LIKE @query AND jobtype = @jobtype LIMIT 20", { query = string.lower('%'..sentData..'%'), jobtype = JobType })
 			local citizenIds = {}
 			local citizenIdIndexMap = {}
 
 			for index, data in pairs(people) do
 				people[index]['warrant'] = false
 				people[index]['convictions'] = 0
-				people[index]['licences'] = GetPlayerLicenses(PlayerData[1].registration, user_id)
+				people[index]['licences'] = people.metadata
 				people[index]['pp'] = ProfPic(data.sex)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index

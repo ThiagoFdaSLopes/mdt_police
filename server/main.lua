@@ -601,7 +601,7 @@ function cRP.SearchProfileMdt(sentData)
 			for index, data in pairs(people) do
 				people[index]['warrant'] = false
 				people[index]['convictions'] = 0
-				people[index]['licences'] = people.metadata
+				people[index]['licences'] = json.decode(people.metadata)
 				people[index]['pp'] = ProfPic(data.sex)
 				citizenIds[#citizenIds+1] = data.registration
 				citizenIdIndexMap[data.registration] = index

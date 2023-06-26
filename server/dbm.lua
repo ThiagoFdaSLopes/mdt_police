@@ -155,17 +155,16 @@ function GetVehicleInformation(plate, cb)
 	return result
 end
 
-function GetPlayerLicenses(identifier)
-    local response = false
-    local Player = QBCore.Functions.GetPlayerByCitizenId(identifier)
-    if Player ~= nil then
-        return Player.PlayerData.metadata.licences
+function GetPlayerLicenses(identifier, playerId)
+    local Player = vRP.getInformation(playerId)
+    if Player[1] ~= nil then
+        return Player[1].metadata
     else
-        local result = MySQL.scalar.await('SELECT metadata FROM players WHERE citizenid = @identifier', {['@identifier'] = identifier})
+        local result = MySQL.scalar.await('SELECT metadata FROM vrp_users WHERE registration = @identifier', {['@identifier'] = identifier})
         if result ~= nil then
             local metadata = json.decode(result)
-            if metadata["licences"] ~= nil and metadata["licences"] then
-                return metadata["licences"]
+            if metadata["metadata"] ~= nil and metadata["metadata"] then
+                return metadata["metadata"]
             else
                 return {
                     ['driver'] = false,
